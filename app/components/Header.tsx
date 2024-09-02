@@ -1,16 +1,16 @@
-// app/components/Header.tsx
-
 import React from 'react';
-
-// Header Component
-// This functional component renders the header section of the application,
-// displaying the application name prominently.
 
 const Header = () => {
   return (
-    <header className="bg-gray-800 text-white p-4 text-center">
-      {/* Application title displayed in the header */}
-      <h1 className="text-3xl font-bold">Invoisseur Next</h1>
+    <header className="bg-gray-800 text-white p-4 text-center flex items-center justify-center">
+      <img
+        src="path/to/logo.png" // Replace with the path to your logo image
+        alt="Invoisseur Logo"
+        className="h-10 w-auto mr-4" // Adjust the size of the logo
+      />
+      <div>
+        <h1 className="text-3xl font-bold">Invoisseur</h1>
+      </div>
     </header>
   );
 };
