@@ -1,5 +1,5 @@
 
-"use client"; // Mark this component as a client component
+"use client";
 
 import React, { useState, ChangeEvent } from 'react';
 import { PDFDocument, rgb } from 'pdf-lib';
