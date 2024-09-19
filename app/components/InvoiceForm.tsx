@@ -273,7 +273,7 @@ const InvoiceForm: React.FC = () => {
         }
       };
   
-      // Embed and draw the logo if it's a file
+      
       if (invoiceData.logo instanceof File) {
         const logoImage = await embedImage(invoiceData.logo);
         page.drawImage(logoImage, {
@@ -285,16 +285,15 @@ const InvoiceForm: React.FC = () => {
         yOffset -= 90;
       }
   
-      // From Section
+  
       page.drawText('From:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
       drawMultilineText(invoiceData.from, 50, yOffset - 20);
       yOffset -= 70; 
   
-      // Bill To Section
 page.drawText('Bill To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
 drawMultilineText(invoiceData.billTo, 50, yOffset - 20);
 
-// Invoice # and Invoice Date aligned with Bill To
+
 page.drawText('Invoice #: ' + invoiceData.invoiceNumber, {
   x: width - 165,
   y: yOffset, 
@@ -310,30 +309,36 @@ page.drawText('Invoice Date: ' + invoiceData.invoiceDate, {
 
 yOffset -= 70; 
 
-// Conditionally Add Ship To Section
+
 if (invoiceData.shipTo) {
   page.drawText('Ship To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
   drawMultilineText(invoiceData.shipTo, 50, yOffset - 20);
 
-  // P.O. # and Invoice Due Date aligned with Ship To
-  page.drawText('P.O. #: ' + invoiceData.poNumber, {
-    x: width - 165,
-    y: yOffset,
-    size: 12,
-    color: rgb(0, 0, 0),
-  });
-  page.drawText('Invoice Due Date: ' + invoiceData.invoiceDueDate, {
-    x: width - 165,
-    y: yOffset - 20, 
-    color: rgb(0, 0, 0),
-  });
+  
+  if (invoiceData.poNumber) {
+    page.drawText('P.O. #: ' + invoiceData.poNumber, {
+      x: width - 165,
+      y: yOffset,
+      size: 12,
+      color: rgb(0, 0, 0),
+    });
+  }
 
-  yOffset -= 100; 
+  yOffset -= 100;
 }
 
-yOffset -= 40;
+
+const invoiceDueDateText = invoiceData.invoiceDueDate ? invoiceData.invoiceDueDate : 'N/A';
+page.drawText('Invoice Due Date: ' + invoiceDueDateText, {
+  x: width - 165,
+  y: yOffset - 20, 
+  size: 12, 
+  color: rgb(0, 0, 0),
+});
+
+yOffset -= 100;
   
-      // Table Headers
+      
       page.drawText('Qty', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
       page.drawText('Description', { x: 100, y: yOffset, size: 12, color: rgb(0, 0, 0) });
       page.drawText('Unit Price', { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
@@ -345,14 +350,14 @@ yOffset -= 40;
       const amountX = 450; 
       const labelPadding = 15; 
       
-      // Items
+      
       invoiceData.items.forEach(item => {
         page.drawText(item.qty, { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
         drawMultilineText(item.description, 100, yOffset);
         page.drawText(item.unitPrice, { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
         page.drawText(item.amount, { x: amountX, y: yOffset, size: 12, color: rgb(0, 0, 0) });
       
-        // Conditionally Add Tax Section
+        
         if (item.taxName) {
           page.drawText(`${item.taxName} ${item.taxPercentage}%`, { x: 520, y: yOffset, size: 12, color: rgb(0, 0, 0) });
         }
@@ -362,7 +367,7 @@ yOffset -= 40;
       
       yOffset -= 20; 
       
-      // Totals
+     
       const textSize = 12; 
       
       page.drawText(`Subtotal:${' '.repeat(labelPadding)}${formatCurrency(subtotal, currency)}`, { x: amountX, y: yOffset, size: textSize, color: rgb(0, 0, 0) });
