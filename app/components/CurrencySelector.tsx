@@ -1,27 +1,67 @@
-// CurrencySelector.tsx
-import React from 'react';
-import { CURRENCIES, Currency } from './currency';
+import React, { ChangeEvent } from 'react';
 
 interface CurrencySelectorProps {
-  selectedCurrency: string;
+  currency: string;
+  currencySymbol: string;
   onCurrencyChange: (currencyCode: string) => void;
+  onSymbolChange: (symbol: string) => void;
 }
 
-const CurrencySelector: React.FC<CurrencySelectorProps> = ({ selectedCurrency, onCurrencyChange }) => {
+const CurrencySelector: React.FC<CurrencySelectorProps> = ({
+  currency,
+  currencySymbol,
+  onCurrencyChange,
+  onSymbolChange,
+}) => {
+  // Automatically updates symbol based on the selected currency
+  const handleCurrencyChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const selectedCurrency = event.target.value;
+    onCurrencyChange(selectedCurrency);
+
+    let symbol = '';
+    switch (selectedCurrency) {
+      case 'USD':
+        symbol = '$';
+        break;
+      case 'EUR':
+        symbol = '€';
+        break;
+      case 'GBP':
+        symbol = '£';
+        break;
+      case 'ZAR':
+        symbol = 'R';
+        break;
+      default:
+        symbol = selectedCurrency; 
+    }
+
+    onSymbolChange(symbol); 
+  };
+
+  const handleSymbolChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onSymbolChange(event.target.value);
+  };
+
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">Currency</label>
-      <select
-        value={selectedCurrency}
-        onChange={(e) => onCurrencyChange(e.target.value)}
-        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-      >
-        {CURRENCIES.map((currency: Currency) => (
-          <option key={currency.code} value={currency.code}>
-            {currency.name} ({currency.symbol})
-          </option>
-        ))}
+    <div>
+      <label htmlFor="currency">Currency:</label>
+      <select id="currency" value={currency} onChange={handleCurrencyChange}>
+        <option value="USD">USD ($)</option>
+        <option value="EUR">EUR (€)</option>
+        <option value="GBP">GBP (£)</option>
+        <option value="ZAR">ZAR (R)</option>
+        {/* Add other currencies as needed */}
       </select>
+
+      <label htmlFor="currencySymbol">Currency Symbol:</label>
+      <input
+        type="text"
+        id="currencySymbol"
+        value={currencySymbol}
+        onChange={handleSymbolChange}
+        placeholder="Currency Symbol"
+      />
     </div>
   );
 };

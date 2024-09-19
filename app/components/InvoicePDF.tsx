@@ -1,6 +1,5 @@
-// app/components/InvoicePDF.tsx
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 
 // Define the structure of the invoice data
 interface InvoiceData {
@@ -22,6 +21,7 @@ interface InvoiceData {
   termsConditions: string;
   taxRate: number;
   totalTax: number;
+  signature?: string;  // Optional signature data URL
 }
 
 // Styles for the PDF document
@@ -59,6 +59,11 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: 'bold'
+  },
+  signature: {
+    marginTop: '20px',
+    borderTop: '1px solid #000000',
+    paddingTop: '10px',
   }
 });
 
@@ -108,6 +113,12 @@ const InvoicePDF: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => 
         <Text>Total:</Text>
         <Text>${invoiceData.total.toFixed(2)}</Text>
       </View>
+      {invoiceData.signature && (
+        <View style={styles.signature}>
+          <Text>Signature:</Text>
+          <Image src={invoiceData.signature} style={{ width: 200, height: 100 }} />
+        </View>
+      )}
     </Page>
   </Document>
 );

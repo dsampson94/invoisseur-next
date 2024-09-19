@@ -2,9 +2,9 @@ import React from 'react';
 
 // Props interface to define the structure of the invoice item
 interface InvoiceItemProps {
-  name: string;  // Name of the item being invoiced
-  description: string;  // Description of the item
-  amount: number;  // Amount or price of the item
+  name: string;  
+  description: string;  
+  amount: number; 
 }
 
 // Functional component to render individual invoice items
