@@ -1,9 +1,12 @@
 "use client";
-
-import React, { useState, ChangeEvent, DragEvent, useEffect } from 'react';
-import { PDFDocument, rgb } from 'pdf-lib';
-import TaxModal from './TaxModal'; // Adjust the import path as necessary
-import SavedItemsModal from './SavedItemsModal'; // Add import for SavedItemsModal
+import React, { useState, ChangeEvent, DragEvent, useEffect } from "react";
+import { PDFDocument, PDFFont, rgb } from "pdf-lib";
+import TaxModal from "./TaxModal";
+import SavedItemsModal from "./SavedItemsModal";
+import CurrencySelector from "./CurrencySelector";
+import { formatCurrency } from "./currency";
+import TermsConditions from "./TermsConditions";
+import Signature from "./Signature";
 
 interface ItemData {
   qty: string;
@@ -23,48 +26,59 @@ interface InvoiceData {
   invoiceDate: string;
   poNumber: string;
   invoiceDueDate: string;
-  logo: Uint8Array | null;
+  logo: File | null;
   items: ItemData[];
   showTax: boolean;
+  dueDate?: string;
 }
 
-const InvoiceComponent: React.FC = () => {
+const InvoiceForm: React.FC = () => {
+  const [currency, setCurrency] = useState("ZAR");
+  const [currencySymbol, setCurrencySymbol] = useState("R");
+  const [vatPercentage, setVatPercentage] = useState(0.0);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
-    from: '',
-    billTo: '',
-    shipTo: '',
-    invoiceNumber: '',
-    invoiceDate: '',
-    poNumber: '',
-    invoiceDueDate: '',
+    from: "",
+    billTo: "",
+    shipTo: "",
+    invoiceNumber: "",
+    invoiceDate: "",
+    poNumber: "",
+    invoiceDueDate: "",
     logo: null,
-    items: [{
-      qty: '',
-      description: '',
-      unitPrice: '',
-      amount: '',
-      taxName: '',
-      taxPercentage: '',
-      showTax: false,
-    }],
+    items: [
+      {
+        qty: "",
+        description: "",
+        unitPrice: "",
+        amount: "",
+        taxName: "",
+        taxPercentage: "",
+        showTax: false,
+      },
+    ],
     showTax: false,
   });
 
-  const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
-  const [isSavedItemsModalOpen, setIsSavedItemsModalOpen] = useState(false);
   const [subtotal, setSubtotal] = useState(0);
   const [vat, setVat] = useState(0);
   const [total, setTotal] = useState(0);
+  const [termsConditions, setTermsConditions] = useState("");
+  const [signature, setSignature] = useState<File | null>(null);
+  const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
+  const [isSavedItemsModalOpen, setIsSavedItemsModalOpen] = useState(false);
+  const [savedItems, setSavedItems] = useState<ItemData[]>([]);
 
   const calculateTotals = () => {
     let subtotal = 0;
     let vat = 0;
-    invoiceData.items.forEach(item => {
-      const amount = parseFloat(item.amount || '0');
+
+    invoiceData.items.forEach((item) => {
+      const amount = parseFloat(item.amount || "0");
       subtotal += amount;
 
+      // Only calculate VAT if a tax is added
       if (item.showTax) {
-        const taxPercentage = parseFloat(item.taxPercentage || '0');
+        const taxPercentage = parseFloat(item.taxPercentage || "0");
         vat += (taxPercentage / 100) * amount;
       }
     });
@@ -76,57 +90,60 @@ const InvoiceComponent: React.FC = () => {
 
   useEffect(() => {
     calculateTotals();
-  }, [invoiceData.items]);
+  }, [invoiceData.items, vatPercentage]);
 
-  const handleChange = (index: number, event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleChange = (
+    index: number,
+    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
     const updatedItems = [...invoiceData.items];
-    updatedItems[index][event.target.name] = event.target.value;
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [event.target.name as keyof ItemData]: event.target.value,
+    };
     setInvoiceData({ ...invoiceData, items: updatedItems });
   };
 
+  const handleFileChangeOrDrop = (file: File | null) => {
+    setInvoiceData((prevData) => ({ ...prevData, logo: file }));
+  };
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result instanceof ArrayBuffer) {
-          setInvoiceData({ ...invoiceData, logo: new Uint8Array(reader.result) });
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
+    handleFileChangeOrDrop(event.target.files?.[0] || null);
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const file = event.dataTransfer.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result instanceof ArrayBuffer) {
-          setInvoiceData({ ...invoiceData, logo: new Uint8Array(reader.result) });
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
+    handleFileChangeOrDrop(event.dataTransfer.files?.[0] || null);
   };
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
 
-  const openTaxModal = () => {
-    setIsTaxModalOpen(true);
-  };
+  const openTaxModal = () => setIsTaxModalOpen(true);
+  const closeTaxModal = () => setIsTaxModalOpen(false);
 
-  const closeTaxModal = () => {
-    setIsTaxModalOpen(false);
-  };
+  const saveTaxDetails = (
+    index: number,
+    taxName: string,
+    enteredTaxPercentage: string
+  ) => {
+    const taxPercentageValue = parseFloat(enteredTaxPercentage) || 0;
 
-  const saveTaxDetails = (index: number, taxName: string, taxPercentage: string) => {
-    const updatedItems = [...invoiceData.items];
-    updatedItems[index] = { ...updatedItems[index], taxName, taxPercentage, showTax: true };
-    setInvoiceData({ ...invoiceData, items: updatedItems });
+    setInvoiceData((prevData) => {
+      const updatedItems = [...prevData.items];
+      updatedItems[index] = {
+        ...updatedItems[index],
+        taxName,
+        taxPercentage: enteredTaxPercentage,
+        showTax: true, 
+      };
+      return { ...prevData, items: updatedItems };
+    });
+
+    setVatPercentage(taxPercentageValue);
+    calculateTotals(); 
   };
 
   const removeItem = (index: number) => {
@@ -137,133 +154,292 @@ const InvoiceComponent: React.FC = () => {
   };
 
   const addNewItem = () => {
-    setInvoiceData({
-      ...invoiceData,
+    setInvoiceData((prevData) => ({
+      ...prevData,
       items: [
-        ...invoiceData.items,
-        { qty: '', description: '', unitPrice: '', amount: '', taxName: '', taxPercentage: '', showTax: false }
+        ...prevData.items,
+        {
+          qty: "",
+          description: "",
+          unitPrice: "",
+          amount: "",
+          taxName: "",
+          taxPercentage: "",
+          showTax: false,
+        },
       ],
-    });
+    }));
   };
 
   const openSavedItemsModal = () => {
+    const savedItems: ItemData[] = Object.keys(localStorage)
+      .filter((key) => key.startsWith("savedItem_"))
+      .map((key) => {
+        const itemString = localStorage.getItem(key);
+        if (itemString) {
+          try {
+            return JSON.parse(itemString);
+          } catch (e) {
+            console.error(`Failed to parse JSON for key ${key}:`, e);
+            return null;
+          }
+        }
+        return null;
+      })
+      .filter((item): item is ItemData => item !== null && !!item.description);
+
+    setSavedItems(savedItems);
     setIsSavedItemsModalOpen(true);
   };
 
-  const closeSavedItemsModal = () => {
-    setIsSavedItemsModalOpen(false);
+  const closeSavedItemsModal = () => setIsSavedItemsModalOpen(false);
+
+  const addSavedItems = (items: ItemData[]) => {
+    setInvoiceData((prevData) => ({
+      ...prevData,
+      items: [...prevData.items, ...items],
+    }));
+  };
+
+  const handleSignatureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
+    setSignature(file);
+  };
+
+  const saveCurrentItem = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const currentItem = invoiceData.items[0];
+    localStorage.setItem(`savedItem_${Date.now()}`, JSON.stringify(currentItem));
+    alert("Item saved successfully");
+  };
+
+  const handleCurrencyChange = (currencyCode: string): void => {
+    setCurrency(currencyCode);
+    let symbol = "";
+
+    switch (currencyCode) {
+      case "USD":
+        symbol = "$";
+        break;
+      case "EUR":
+        symbol = "€";
+        break;
+      case "GBP":
+        symbol = "£";
+        break;
+      case "ZAR":
+        symbol = "R";
+        break;
+      default:
+        symbol = currencyCode;
+    }
+
+    setCurrencySymbol(symbol);
+  };
+
+  const fileToArrayBuffer = (file: File): Promise<ArrayBuffer> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
   };
 
   const generatePDF = async () => {
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 700]);
-    const { width, height } = page.getSize();
-
-    let yOffset = height - 100;
-
-    if (invoiceData.logo) {
-      const logoImage = await pdfDoc.embedPng(invoiceData.logo);
-      page.drawImage(logoImage, {
-        x: width - 150,
-        y: yOffset,
-        width: 80,
-        height: 80,
-      });
-    }
-
-    yOffset -= 50;
-
-    const drawMultilineText = (text: string, x: number, y: number) => {
-      const lines = text.split('\n');
-      lines.forEach((line, index) => {
-        page.drawText(line, { x, y: y - index * 15, size: 12, color: rgb(0, 0, 0) });
-      });
-    };
-
-    page.drawText('From:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    drawMultilineText(invoiceData.from, 50, yOffset - 20);
-
-    yOffset -= 60;
-
-    page.drawText('Bill To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    drawMultilineText(invoiceData.billTo, 50, yOffset - 20);
-
-    yOffset -= 60;
-
-    page.drawText('Ship To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    drawMultilineText(invoiceData.shipTo, 50, yOffset - 20);
-
-    yOffset -= 60;
-
-    page.drawText('Invoice #: ' + invoiceData.invoiceNumber, {
-      x: width - 150,
-      y: height - 140,
-      size: 12,
-      color: rgb(0, 0, 0),
-    });
-
-    page.drawText('Invoice Date: ' + invoiceData.invoiceDate, {
-      x: width - 150,
-      y: height - 180,
-      size: 12,
-      color: rgb(0, 0, 0),
-    });
-
-    page.drawText('P.O. #: ' + invoiceData.poNumber, {
-      x: width - 150,
-      y: height - 220,
-      size: 12,
-      color: rgb(0, 0, 0),
-    });
-
-    page.drawText('Invoice Due Date: ' + invoiceData.invoiceDueDate, {
-      x: width - 150,
-      y: height - 260,
-      size: 12,
-      color: rgb(0, 0, 0),
-    });
-
-    yOffset -= 60;
-
-    // Draw headers
-    page.drawText('Qty', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    page.drawText('Description', { x: 100, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    page.drawText('Unit Price', { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    page.drawText('Amount', { x: 450, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    page.drawText('Tax', { x: 520, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-
-    yOffset -= 30;
-
-    // Draw item details
-    invoiceData.items.forEach(item => {
-      page.drawText(item.qty, { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-      drawMultilineText(item.description, 100, yOffset - 20);
-      page.drawText(item.unitPrice, { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-      page.drawText(item.amount, { x: 450, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-      if (item.showTax) {
-        page.drawText(item.taxPercentage + '%', { x: 520, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+    try {
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([600, 800]);
+      const { width, height } = page.getSize();
+  
+      let yOffset = height - 50;
+  
+      const drawMultilineText = (text: string, x: number, y: number) => {
+        const lines = text.split("\n");
+        lines.forEach((line, index) => {
+          page.drawText(line, { x, y: y - index * 15, size: 12, color: rgb(0, 0, 0) });
+        });
+      };
+  
+      const embedImage = async (file: File) => {
+        const arrayBuffer = await fileToArrayBuffer(file);
+        const fileType = file.type;
+        if (fileType === "image/png") {
+          return pdfDoc.embedPng(arrayBuffer);
+        } else if (fileType === "image/jpeg") {
+          return pdfDoc.embedJpg(arrayBuffer);
+        } else {
+          throw new Error("Unsupported image format. Only PNG and JPEG are allowed.");
+        }
+      };
+  
+      // Embed and draw the logo if it's a file
+      if (invoiceData.logo instanceof File) {
+        const logoImage = await embedImage(invoiceData.logo);
+        page.drawImage(logoImage, {
+          x: width - 165,
+          y: yOffset - 80,
+          width: 100,
+          height: 50,
+        });
+        yOffset -= 90;
       }
+  
+      // From Section
+      page.drawText('From:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+      drawMultilineText(invoiceData.from, 50, yOffset - 20);
+      yOffset -= 70; 
+  
+      // Bill To Section
+page.drawText('Bill To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+drawMultilineText(invoiceData.billTo, 50, yOffset - 20);
 
-      yOffset -= 50;
-    });
+// Invoice # and Invoice Date aligned with Bill To
+page.drawText('Invoice #: ' + invoiceData.invoiceNumber, {
+  x: width - 165,
+  y: yOffset, 
+  size: 12,
+  color: rgb(0, 0, 0),
+});
+page.drawText('Invoice Date: ' + invoiceData.invoiceDate, {
+  x: width - 165,
+  y: yOffset - 20, 
+  size: 12,
+  color: rgb(0, 0, 0),
+});
 
-    // Draw subtotal, VAT, and total
-    page.drawText(`Subtotal: $${subtotal.toFixed(2)}`, { x: 400, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    yOffset -= 20;
-    page.drawText(`VAT: $${vat.toFixed(2)}`, { x: 400, y: yOffset, size: 12, color: rgb(0, 0, 0) });
-    yOffset -= 20;
-    page.drawText(`Total: $${total.toFixed(2)}`, { x: 400, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+yOffset -= 70; 
 
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    window.open(url);
+// Conditionally Add Ship To Section
+if (invoiceData.shipTo) {
+  page.drawText('Ship To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+  drawMultilineText(invoiceData.shipTo, 50, yOffset - 20);
+
+  // P.O. # and Invoice Due Date aligned with Ship To
+  page.drawText('P.O. #: ' + invoiceData.poNumber, {
+    x: width - 165,
+    y: yOffset,
+    size: 12,
+    color: rgb(0, 0, 0),
+  });
+  page.drawText('Invoice Due Date: ' + invoiceData.invoiceDueDate, {
+    x: width - 165,
+    y: yOffset - 20, 
+    color: rgb(0, 0, 0),
+  });
+
+  yOffset -= 100; 
+}
+
+yOffset -= 40;
+  
+      // Table Headers
+      page.drawText('Qty', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('Description', { x: 100, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('Unit Price', { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('Amount', { x: 450, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('Tax', { x: 520, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+  
+      yOffset -= 30; 
+  
+      const amountX = 450; 
+      const labelPadding = 15; 
+      
+      // Items
+      invoiceData.items.forEach(item => {
+        page.drawText(item.qty, { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+        drawMultilineText(item.description, 100, yOffset);
+        page.drawText(item.unitPrice, { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+        page.drawText(item.amount, { x: amountX, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+      
+        // Conditionally Add Tax Section
+        if (item.taxName) {
+          page.drawText(`${item.taxName} ${item.taxPercentage}%`, { x: 520, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+        }
+      
+        yOffset -= 50; 
+      });
+      
+      yOffset -= 20; 
+      
+      // Totals
+      const textSize = 12; 
+      
+      page.drawText(`Subtotal:${' '.repeat(labelPadding)}${formatCurrency(subtotal, currency)}`, { x: amountX, y: yOffset, size: textSize, color: rgb(0, 0, 0) });
+      yOffset -= 40; 
+      
+      if (vat > 0) {
+        page.drawText(`VAT:${' '.repeat(labelPadding)}${formatCurrency(vat, currency)}`, { x: amountX, y: yOffset, size: textSize, color: rgb(0, 0, 0) });
+        yOffset -= 40; 
+      }
+      
+      page.drawText(`Total:${' '.repeat(labelPadding)}${currencySymbol}${formatCurrency(total, currency)}`, { x: amountX, y: yOffset, size: textSize, color: rgb(0, 0, 0) });
+      
+      yOffset -= 80;
+      
+
+
+      const margin = 50; 
+const sectionHeight = 60; 
+const termsHeight = 15 * Math.min(termsConditions.split('\n').length, 10); 
+
+
+
+const maxHeight = Math.max(sectionHeight, termsHeight);
+const signatureY = yOffset; 
+const termsY = yOffset; 
+
+
+const adjustedYOffset = Math.min(signatureY, termsY);
+
+// Draw Signature
+if (signature instanceof File) {
+  const signatureImage = await embedImage(signature);
+  page.drawImage(signatureImage, {
+    x: width - 150,
+    y: adjustedYOffset - 50, 
+    width: 100,
+    height: 50,
+  });
+}
+
+// Draw Terms and Conditions
+page.drawText('Terms and Conditions:', { x: margin, y: adjustedYOffset, size: 12, color: rgb(0, 0, 0) });
+yOffset = adjustedYOffset - 20; 
+
+if (termsConditions) {
+  const termsLines = termsConditions.split('\n');
+  termsLines.forEach((line, index) => {
+    page.drawText(line, { x: margin, y: yOffset - (index * 15), size: 12, color: rgb(0, 0, 0) });
+  });
+  yOffset -= (termsLines.length * 15); 
+} else {
+  page.drawText('No Terms and Conditions provided.', { x: margin, y: yOffset, size: 12, color: rgb(0, 0, 0) });
+  yOffset -= 20; 
+}
+
+
+yOffset = Math.min(signatureY - 60, yOffset);
+
+
+
+yOffset = Math.min(signatureY - 60, yOffset);
+      //Save PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
+  
   return (
-    <div className="p-4 flex flex-col space-y-4">
+    <div className="p-4 flex flex-col space-y-4 px-[7cm]"> {/* Add padding to the left and right */}
       <div className="flex flex-row space-x-4">
         <div className="flex-1 mr-4">
+          {/* From Section */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">From</label>
             <textarea
@@ -272,11 +448,13 @@ const InvoiceComponent: React.FC = () => {
               onChange={(e) => setInvoiceData({ ...invoiceData, from: e.target.value })}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
               placeholder="Your company name or address"
-              style={{ height: '100px', resize: 'none', maxWidth: '350px' }}
+              style={{ height: '100px', resize: 'none', maxWidth: '570px' }}
             />
           </div>
         </div>
-        <div className="flex-none" style={{ maxWidth: '350px' }}>
+  
+        {/* Logo Section */}
+        <div className="flex-none" style={{ maxWidth: '250px' }}>
           <div
             className="border border-gray-300 rounded-md p-4 text-center mb-4"
             onDrop={handleDrop}
@@ -293,9 +471,11 @@ const InvoiceComponent: React.FC = () => {
           </div>
         </div>
       </div>
-
+  
+      {/* Other sections remain the same */}
       <div className="flex flex-row space-x-4">
         <div className="flex-1 mr-4">
+          {/* Bill To Section */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Bill To</label>
             <textarea
@@ -304,9 +484,11 @@ const InvoiceComponent: React.FC = () => {
               onChange={(e) => setInvoiceData({ ...invoiceData, billTo: e.target.value })}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
               placeholder="Customer billing address"
-              style={{ height: '100px', resize: 'none', maxWidth: '350px' }}
+              style={{ height: '100px', resize: 'none', maxWidth: '570px' }}
             />
           </div>
+  
+          {/* Ship To Section */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Ship To</label>
             <textarea
@@ -314,12 +496,14 @@ const InvoiceComponent: React.FC = () => {
               value={invoiceData.shipTo}
               onChange={(e) => setInvoiceData({ ...invoiceData, shipTo: e.target.value })}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-              placeholder="Customer shipping address"
-              style={{ height: '100px', resize: 'none', maxWidth: '350px' }}
+              placeholder="Customer shipping address(Optional)"
+              style={{ height: '100px', resize: 'none', maxWidth: '570px' }}
             />
           </div>
         </div>
+  
         <div className="flex-none w-1/4">
+          {/* Invoice Information */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Invoice #</label>
             <input
@@ -333,27 +517,28 @@ const InvoiceComponent: React.FC = () => {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Invoice Date</label>
             <input
-              type="text"
-              name="invoiceDate"
-              value={invoiceData.invoiceDate}
-              onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+               type="date"
+               name="invoiceDate"
+               value={invoiceData.invoiceDate}
+               onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
+               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">P.O. #</label>
+            <label className="block text-sm font-medium text-gray-700">PO #</label>
             <input
               type="text"
               name="poNumber"
               value={invoiceData.poNumber}
               onChange={(e) => setInvoiceData({ ...invoiceData, poNumber: e.target.value })}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+              placeholder="(Optional)"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Invoice Due Date</label>
+            <label className="block text-sm font-medium text-gray-700">Due Date</label>
             <input
-              type="text"
+              type="date"
               name="invoiceDueDate"
               value={invoiceData.invoiceDueDate}
               onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDueDate: e.target.value })}
@@ -362,120 +547,200 @@ const InvoiceComponent: React.FC = () => {
           </div>
         </div>
       </div>
-
+  
       {invoiceData.items.map((item, index) => (
-        <div key={index} className="flex flex-row space-x-4 mb-4">
-          <div className="flex-1">
-            <div className="flex flex-row items-center space-x-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700">Qty</label>
-                <input
-                  type="text"
-                  name="qty"
-                  value={item.qty}
-                  onChange={(e) => handleChange(index, e)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <div className="flex-2">
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  name="description"
-                  value={item.description}
-                  onChange={(e) => handleChange(index, e)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                  style={{ height: '100px', resize: 'vertical' }}
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700">Unit Price</label>
-                <input
-                  type="text"
-                  name="unitPrice"
-                  value={item.unitPrice}
-                  onChange={(e) => handleChange(index, e)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700">Amount</label>
-                <input
-                  type="text"
-                  name="amount"
-                  value={item.amount}
-                  onChange={(e) => handleChange(index, e)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <div className="flex-none">
-                <button
-                  type="button"
-                  onClick={() => openTaxModal()}
-                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
-                >
-                  {item.taxName ? `${item.taxName} ${item.taxPercentage}%` : 'Add Tax'}
-                </button>
-              </div>
-              <div className="flex-none">
-                <button
-                  type="button"
-                  className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
-                  title="Remove Item"
-                  onClick={() => removeItem(index)}
-                >
-                  <span className="text-xl">×</span>
-                </button>
-              </div>
-            </div>
-          </div>
+  <div key={index} className="flex flex-row space-x-4 mb-4">
+    <div className="flex-1">
+      <div className="flex flex-row items-center space-x-4">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700">Qty</label>
+          <input
+            type="text"
+            name="qty"
+            value={item.qty}
+            onChange={(e) => handleChange(index, e)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+          />
         </div>
-      ))}
-
-      <div className="flex flex-row justify-between mt-4">
-        <div className="flex flex-row space-x-1">
+        <div className="flex-2">
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            name="description"
+            value={item.description}
+            onChange={(e) => handleChange(index, e)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+            style={{ height: '50px', resize: 'vertical' }}
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700">Unit Price</label>
+          <input
+            type="text"
+            name="unitPrice"
+            value={item.unitPrice}
+            onChange={(e) => handleChange(index, e)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700">Amount</label>
+          <input
+            type="text"
+            name="amount"
+            value={item.amount}
+            onChange={(e) => handleChange(index, e)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+          />
+        </div>
+        <div className="flex-none">
           <button
-            onClick={addNewItem}
-            className="px-2 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            type="button"
+            onClick={() => openTaxModal()}
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
           >
-            Add New Item
-          </button>
-          <button
-            onClick={openSavedItemsModal}
-            className="px-2 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            Add Saved Items
+            {item.taxName ? `${item.taxName} ${item.taxPercentage}%` : 'Add Tax'}
           </button>
         </div>
-
-        <div className="flex flex-col space-y-2">
-          <p className="text-lg font-medium">Subtotal: ${subtotal.toFixed(2)}</p>
-          <p className="text-lg font-medium">VAT: ${vat.toFixed(2)}</p>
-          <p className="text-lg font-medium">Total: ${total.toFixed(2)}</p>
+        <div className="flex-none">
+          <button
+            type="button"
+            className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+            title="Remove Item"
+            onClick={() => removeItem(index)}
+          >
+            <span className="text-xl">×</span>
+          </button>
         </div>
       </div>
+    </div>
+  </div>
+))}
 
-      <button
-        onClick={generatePDF}
-        className="self-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mt-4"
+{/* Add Item Buttons and Total */}
+<div className="flex flex-row justify-between mt-4 space-x-4">
+  {/* Add New Item Button */}
+  <div className="flex flex-col space-y-4 flex-1">
+    <button
+      onClick={addNewItem}
+      className="py-2 bg-light-navy-blue text-white rounded-md hover:bg-light-navy-blue-darker w-full"
+      style={{ backgroundColor: '#E0E6ED', color: '#1A1F36' }} // Light navy blue
+    >
+      Add New Item
+    </button>
+  </div>
+
+  {/* Add Saved Items Button */}
+  <div className="flex flex-col space-y-4 flex-1">
+    <button
+      onClick={openSavedItemsModal}
+      className="py-2 bg-light-navy-blue text-white rounded-md hover:bg-light-navy-blue-darker w-full"
+      style={{ backgroundColor: '#E0E6ED', color: '#1A1F36' }} // Light navy blue
+    >
+      Add Saved Items
+    </button>
+
+    {/* Total section under the "Add Saved Items" button */}
+<div className="flex flex-col space-y-2 amount-details mt-4">
+  <div className="subtotal flex justify-between">
+    <span>Subtotal:</span>
+    <span className="ml-4">{formatCurrency(subtotal, currencySymbol)}</span>
+  </div>
+
+  {/* Conditionally show VAT if vat > 0 */}
+  <div className="vat flex justify-between" style={{ display: vat > 0 ? 'flex' : 'none' }}>
+    <span>{invoiceData.items.some(item => item.showTax) ? `VAT ${vatPercentage}%` : ''}:</span>
+    <span className="ml-4">{formatCurrency(vat, currencySymbol)}</span>
+  </div>
+
+  {/* Adjusted TOTAL section with aligned spacing */}
+  <div className="total flex justify-between items-center">
+    {/* TOTAL:ZAR with edit dropdown immediately after */}
+    <div className="flex items-center space-x-2">
+      <span className="flex-none">TOTAL: {currency}</span>
+
+      {/* Smaller Currency Dropdown placed right next to TOTAL:ZAR */}
+      <select
+        className="px-1 py-0.5 text-xs bg-white border border-gray-300 rounded-md"
+        value={currency}
+        onChange={(e) => handleCurrencyChange(e.target.value)}
       >
-        Generate PDF
-      </button>
+        <option value="ZAR">ZAR</option>
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        <option value="GBP">GBP</option>
+        {/* Add more currencies as needed */}
+      </select>
+    </div>
 
-      <TaxModal
-        isOpen={isTaxModalOpen}
-        onClose={closeTaxModal}
-        onSave={(taxName, taxPercentage) => saveTaxDetails(invoiceData.items.length - 1, taxName, taxPercentage)}
-      />
+    {/* 0.00 with currency symbol aligned normally */}
+    <span className="ml-4 flex-none">{currencySymbol}{formatCurrency(total, currencySymbol)}</span>
+  </div>
+</div>
+</div>
+</div>
 
-      <SavedItemsModal
-        isOpen={isSavedItemsModalOpen}
-        onClose={closeSavedItemsModal}
-        onSelectItem={(item) => {
-          // Handle selecting saved item
-        }}
+<div className="mt-6">
+  {/* Terms and Conditions Section */}
+  <div className="flex flex-row justify-between mt-4">
+    <div className="terms flex-1 mr-4">
+      <label className="block text-sm font-medium text-gray-700">Terms and Conditions</label>
+      <textarea
+        placeholder="Terms and conditions"
+        value={termsConditions}
+        onChange={(e) => setTermsConditions(e.target.value)}
+        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+        style={{ height: '100px', resize: 'none', maxWidth: '570px' }}
       />
     </div>
-  );
+    {/* Signature Section */}
+    <div className="signature flex-2">
+      <label className="block text-sm font-medium text-gray-700">Signature</label>
+
+      {/* Updated Signature Component */}
+      <Signature 
+        signature={signature} 
+        onChange={handleSignatureChange} 
+        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+        style={{ height: '100px', maxWidth: '270px' }}
+      />
+      
+      {/* Generate PDF Button */}
+      <div className="mt-4">
+        <button
+          onClick={generatePDF}
+          className="py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 w-full"
+        >
+          Generate PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* Save Item Button */}
+  <div className="flex mt-4">
+    <button
+      onClick={saveCurrentItem}
+      className="py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full"
+    >
+      Save Item
+    </button>
+  </div>
+
+  {/* Tax and Saved Items Modal */}
+  <TaxModal
+    isOpen={isTaxModalOpen}
+    onClose={closeTaxModal}
+    onSave={(taxName, taxPercentage) => saveTaxDetails(invoiceData.items.length - 1, taxName, taxPercentage)}
+  />
+  <SavedItemsModal
+    isOpen={isSavedItemsModalOpen}
+    onClose={closeSavedItemsModal}
+    onSelectItems={addSavedItems}
+    savedItems={savedItems}
+  />
+  </div>
+  </div>
+);
 };
 
-export default InvoiceComponent;
+export default InvoiceForm;

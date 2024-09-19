@@ -51,3 +51,17 @@ form input {
   flex: 1;
   text-align: right;
 }
+
+/* Custom Spacing */
+.custom-space {
+  margin-left: 3cm; /* Adjust as needed */
+}
+/* SignaturePad.css */
+.signature-canvas {
+  border: 1px solid #000;
+  background: #fff;
+}
+/* styles.css */
+.custom-max-width {
+  max-width: 1000px; /* Adjust the value as needed */
+}
