@@ -6,22 +6,18 @@ import InvoiceForm from './components/InvoiceForm';
 import { Analytics } from '@vercel/analytics/react';
 
 const Page = () => {
-  return (
-    <div className="app-container">
-      <Header />
-      
-      <main>
-        <section>
-          
-          <InvoiceForm />
-
-        </section>
-      </main>
-      
-      <Footer />
-      <Analytics/>
-    </div>
-  );
+    return (
+        <div className="app-container">
+            <Header/>
+            <main>
+                <section>
+                    <InvoiceForm/>
+                </section>
+            </main>
+            <Footer/>
+            <Analytics/>
+        </div>
+    );
 };
 
 export default Page;

@@ -12,7 +12,6 @@ const Signature: React.FC<SignatureProps> = ({ signature, onChange, className, s
 
   return (
     <div className={className} style={style}>
-      {/* Display the signature preview above the input box */}
       {signature && (
         <img 
           src={URL.createObjectURL(signature)} 

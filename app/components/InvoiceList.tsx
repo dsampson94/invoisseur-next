@@ -1,5 +1,4 @@
-// app/components/InvoiceForm.tsx
-'use client'; // Add this directive to mark this as a Client Component
+'use client';
 
 import React, { useState } from 'react';
 import { PDFDocument, rgb } from 'pdf-lib';

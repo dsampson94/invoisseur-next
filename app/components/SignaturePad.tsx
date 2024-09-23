@@ -1,4 +1,3 @@
-// SignaturePad.tsx
 import React from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 

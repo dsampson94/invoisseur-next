@@ -10,7 +10,6 @@ export interface Currency {
     { code: 'EUR', symbol: '€', name: 'Euro' },
     { code: 'GBP', symbol: '£', name: 'British Pound' },
     { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-    // Add more currencies as needed
   ];
   
   export function formatCurrency(amount: number, currencyCode: string): string {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 
-// Define the structure of the invoice data
 interface InvoiceData {
   invoiceNumber: string;
   date: string;
@@ -21,10 +20,9 @@ interface InvoiceData {
   termsConditions: string;
   taxRate: number;
   totalTax: number;
-  signature?: string;  // Optional signature data URL
+  signature?: string;
 }
 
-// Styles for the PDF document
 const styles = StyleSheet.create({
   page: {
     padding: '40px',
@@ -67,7 +65,6 @@ const styles = StyleSheet.create({
   }
 });
 
-// Functional component to generate a PDF for an invoice
 const InvoicePDF: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => (
   <Document>
     <Page style={styles.page}>
