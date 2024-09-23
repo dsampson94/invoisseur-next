@@ -270,8 +270,6 @@ const InvoiceForm: React.FC = () => {
                 }
             };
 
-
-// Draw Logo
             if (invoiceData.logo instanceof File) {
                 const logoImage = await embedImage(invoiceData.logo);
                 page.drawImage(logoImage, {
@@ -286,9 +284,7 @@ const InvoiceForm: React.FC = () => {
             page.drawText('From:', { x: 50, y: yOffset - 50, size: 12, color: rgb(0, 0, 0) });
             drawMultilineText(invoiceData.from, 50, yOffset - 70);
 
-
             yOffset -= 180;
-
 
             page.drawText('Invoice #:', { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
             page.drawText(invoiceData.invoiceNumber, { x: 450, y: yOffset, size: 12, color: rgb(0, 0, 0) });
@@ -304,20 +300,17 @@ const InvoiceForm: React.FC = () => {
             page.drawText('Bill To:', { x: 50, y: yOffset + 40, size: 12, color: rgb(0, 0, 0) });
             drawMultilineText(invoiceData.billTo, 50, yOffset + 20);
 
-
             yOffset -= 40;
 
             const labelWidth = 100;
             const spaceBetween = 20;
 
-// Conditionally draw "Ship To" if there is input
             if (invoiceData.shipTo && invoiceData.shipTo.trim() !== '') {
 
                 page.drawText('Ship To:', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
                 drawMultilineText(invoiceData.shipTo, 50, yOffset - 20);
 
                 if (invoiceData.poNumber && invoiceData.poNumber.trim() !== '') {
-                    // Draw "P.O. #" label
                     page.drawText('P.O. #: ', {
                         x: 300,
                         y: yOffset,
@@ -325,7 +318,6 @@ const InvoiceForm: React.FC = () => {
                         color: rgb(0, 0, 0),
                     });
 
-                    // Draw the actual P.O. number with space
                     page.drawText(invoiceData.poNumber, {
                         x: 330 + labelWidth + spaceBetween,
                         y: yOffset,
@@ -338,11 +330,8 @@ const InvoiceForm: React.FC = () => {
                 yOffset -= 50;
             }
 
-
-// Adjust yOffset for item headers
             yOffset -= 20;
 
-// Draw item headers
             page.drawText('Qty', { x: 50, y: yOffset, size: 12, color: rgb(0, 0, 0) });
             page.drawText('Description', { x: 100, y: yOffset, size: 12, color: rgb(0, 0, 0) });
             page.drawText('Unit Price', { x: 300, y: yOffset, size: 12, color: rgb(0, 0, 0) });
@@ -679,13 +668,13 @@ const InvoiceForm: React.FC = () => {
                                     <option value="USD">USD</option>
                                     <option value="EUR">EUR</option>
                                     <option value="GBP">GBP</option>
-                                    {/* Add more currencies as needed */ }
                                 </select>
                             </div>
 
                             {/* 0.00 with currency symbol aligned normally */ }
-                            <span
-                                className="ml-4 flex-none">{ currencySymbol }{ formatCurrency(total, currencySymbol) }</span>
+                            <span className="ml-4 flex-none">
+                                { currencySymbol }{ formatCurrency(total, currencySymbol) }
+                            </span>
                         </div>
                     </div>
                 </div>
