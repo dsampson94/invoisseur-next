@@ -436,311 +436,303 @@ const InvoiceForm: React.FC = () => {
     };
 
     return (
-        <div className="py-8 px-6 my-6 flex min-h-screen shadow-2xl max-w-4xl flex-col mx-auto">
-            <div className="flex flex-row space-x-4">
-                <div className="flex-1 mr-4">
-                    {/* From Section */ }
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">From</label>
-                        <textarea
-                            name="from"
-                            value={ invoiceData.from }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, from: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                            placeholder="Your company name or address"
-                            style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
-                        />
-                    </div>
-                </div>
-
-                {/* Logo Section */ }
-                <div className="flex-none" style={ { maxWidth: '250px' } }>
-                    <div
-                        className="border border-gray-300 rounded-md p-4 text-center mb-4"
-                        onDrop={ handleDrop }
-                        onDragOver={ handleDragOver }
-                    >
-                        <label className="block text-sm font-medium text-gray-700">Logo</label>
-                        <input
-                            type="file"
-                            accept="image/png"
-                            onChange={ handleFileChange }
-                            className="mt-2"
-                        />
-                        <p className="mt-2 text-gray-500">Drag and drop a PNG file or click to select one.</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Other sections remain the same */ }
-            <div className="flex flex-row space-x-4">
-                <div className="flex-1 mr-4">
-                    {/* Bill To Section */ }
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Bill To</label>
-                        <textarea
-                            name="billTo"
-                            value={ invoiceData.billTo }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, billTo: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                            placeholder="Customer billing address"
-                            style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
-                        />
+        <div>
+            <div className="py-8 px-6 my-6 flex min-h-screen shadow-2xl rounded-2xl max-w-4xl flex-col mx-auto">
+                <div className="flex flex-row space-x-4">
+                    <div className="flex-1 mr-4">
+                        {/* From Section */ }
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">From</label>
+                            <textarea
+                                name="from"
+                                value={ invoiceData.from }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, from: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                placeholder="Your company name or address"
+                                style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
+                            />
+                        </div>
                     </div>
 
-                    {/* Ship To Section */ }
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Ship To</label>
-                        <textarea
-                            name="shipTo"
-                            value={ invoiceData.shipTo }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, shipTo: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                            placeholder="Customer shipping address(Optional)"
-                            style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
-                        />
-                    </div>
-                </div>
-
-                <div className="flex-none w-1/4">
-                    {/* Invoice Information */ }
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Invoice #</label>
-                        <input
-                            type="text"
-                            name="invoiceNumber"
-                            value={ invoiceData.invoiceNumber }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, invoiceNumber: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Invoice Date</label>
-                        <input
-                            type="date"
-                            name="invoiceDate"
-                            value={ invoiceData.invoiceDate }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">PO #</label>
-                        <input
-                            type="text"
-                            name="poNumber"
-                            value={ invoiceData.poNumber }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, poNumber: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                            placeholder="(Optional)"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                        <input
-                            type="date"
-                            name="invoiceDueDate"
-                            value={ invoiceData.DueDate }
-                            onChange={ (e) => setInvoiceData({ ...invoiceData, DueDate: e.target.value }) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            { invoiceData.items.map((item, index) => (
-                <div key={ index } className="flex flex-row space-x-4 mb-4">
-                    <div className="flex-1">
-                        <div className="flex flex-row items-center space-x-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Qty</label>
-                                <input
-                                    type="text"
-                                    name="qty"
-                                    value={ item.qty }
-                                    onChange={ (e) => handleChange(index, e) }
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                                />
-                            </div>
-                            <div className="flex-2">
-                                <label className="block text-sm font-medium text-gray-700">Description</label>
-                                <textarea
-                                    name="description"
-                                    value={ item.description }
-                                    onChange={ (e) => handleChange(index, e) }
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                                    style={ { height: '50px', resize: 'vertical' } }
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Unit Price</label>
-                                <input
-                                    type="text"
-                                    name="unitPrice"
-                                    value={ item.unitPrice }
-                                    onChange={ (e) => handleChange(index, e) }
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Amount</label>
-                                <input
-                                    type="text"
-                                    name="amount"
-                                    value={ item.amount }
-                                    onChange={ (e) => handleChange(index, e) }
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                                />
-                            </div>
-                            <div className="flex-none">
-                                <button
-                                    type="button"
-                                    onClick={ () => openTaxModal() }
-                                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
-                                >
-                                    { item.taxName ? `${ item.taxName } ${ item.taxPercentage }%` : 'Add Tax' }
-                                </button>
-                            </div>
-                            <div className="flex-none">
-                                <button
-                                    type="button"
-                                    className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
-                                    title="Remove Item"
-                                    onClick={ () => removeItem(index) }
-                                >
-                                    <span className="text-xl">×</span>
-                                </button>
-                            </div>
+                    {/* Logo Section */ }
+                    <div className="flex-none" style={ { maxWidth: '250px' } }>
+                        <div
+                            className="border border-gray-300 rounded-md p-4 text-center mb-4"
+                            onDrop={ handleDrop }
+                            onDragOver={ handleDragOver }
+                        >
+                            <label className="block text-sm font-medium text-gray-700">Logo</label>
+                            <input
+                                type="file"
+                                accept="image/png"
+                                onChange={ handleFileChange }
+                                className="mt-2"
+                            />
+                            <p className="mt-2 text-gray-500">Drag and drop a PNG file or click to select one.</p>
                         </div>
                     </div>
                 </div>
-            )) }
 
-            {/* Add Item Buttons and Total */ }
-            <div className="flex flex-row justify-between mt-4 space-x-4">
-                {/* Add New Item Button */ }
-                <div className="flex flex-col space-y-4 flex-1">
-                    <button
-                        onClick={ addNewItem }
-                        className="py-2 bg-light-navy-blue text-white rounded-md hover:bg-light-navy-blue-darker w-full"
-                        style={ { backgroundColor: '#E0E6ED', color: '#1A1F36' } } // Light navy blue
-                    >
-                        Add New Item
-                    </button>
+                {/* Other sections remain the same */ }
+                <div className="flex flex-row space-x-4">
+                    <div className="flex-1 mr-4">
+                        {/* Bill To Section */ }
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Bill To</label>
+                            <textarea
+                                name="billTo"
+                                value={ invoiceData.billTo }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, billTo: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                placeholder="Customer billing address"
+                                style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
+                            />
+                        </div>
+
+                        {/* Ship To Section */ }
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Ship To</label>
+                            <textarea
+                                name="shipTo"
+                                value={ invoiceData.shipTo }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, shipTo: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                placeholder="Customer shipping address(Optional)"
+                                style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex-none w-1/4">
+                        {/* Invoice Information */ }
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Invoice #</label>
+                            <input
+                                type="text"
+                                name="invoiceNumber"
+                                value={ invoiceData.invoiceNumber }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, invoiceNumber: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Invoice Date</label>
+                            <input
+                                type="date"
+                                name="invoiceDate"
+                                value={ invoiceData.invoiceDate }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">PO #</label>
+                            <input
+                                type="text"
+                                name="poNumber"
+                                value={ invoiceData.poNumber }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, poNumber: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                placeholder="(Optional)"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                            <input
+                                type="date"
+                                name="invoiceDueDate"
+                                value={ invoiceData.DueDate }
+                                onChange={ (e) => setInvoiceData({ ...invoiceData, DueDate: e.target.value }) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Add Saved Items Button */ }
-                <div className="flex flex-col space-y-4 flex-1">
-                    <button
-                        onClick={ openSavedItemsModal }
-                        className="py-2 bg-light-navy-blue text-white rounded-md hover:bg-light-navy-blue-darker w-full"
-                        style={ { backgroundColor: '#E0E6ED', color: '#1A1F36' } } // Light navy blue
-                    >
-                        Add Saved Items
-                    </button>
-
-                    {/* Total section under the "Add Saved Items" button */ }
-                    <div className="flex flex-col space-y-2 amount-details mt-4">
-                        <div className="subtotal flex justify-between">
-                            <span>Subtotal:</span>
-                            <span className="ml-4">{ formatCurrency(subtotal, currencySymbol) }</span>
+                { invoiceData.items.map((item, index) => (
+                    <div key={ index } className="flex flex-row space-x-4 mb-4">
+                        <div className="flex-1">
+                            <div className="flex flex-row items-center space-x-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700">Qty</label>
+                                    <input
+                                        type="text"
+                                        name="qty"
+                                        value={ item.qty }
+                                        onChange={ (e) => handleChange(index, e) }
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                    />
+                                </div>
+                                <div className="flex-2">
+                                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                                    <textarea
+                                        name="description"
+                                        value={ item.description }
+                                        onChange={ (e) => handleChange(index, e) }
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                        style={ { height: '50px', resize: 'vertical' } }
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700">Unit Price</label>
+                                    <input
+                                        type="text"
+                                        name="unitPrice"
+                                        value={ item.unitPrice }
+                                        onChange={ (e) => handleChange(index, e) }
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700">Amount</label>
+                                    <input
+                                        type="text"
+                                        name="amount"
+                                        value={ item.amount }
+                                        onChange={ (e) => handleChange(index, e) }
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                    />
+                                </div>
+                                <div className="flex-none">
+                                    <button
+                                        type="button"
+                                        onClick={ () => openTaxModal() }
+                                        className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
+                                    >
+                                        { item.taxName ? `${ item.taxName } ${ item.taxPercentage }%` : 'Add Tax' }
+                                    </button>
+                                </div>
+                                <div className="flex-none">
+                                    <button
+                                        type="button"
+                                        className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                                        title="Remove Item"
+                                        onClick={ () => removeItem(index) }
+                                    >
+                                        <span className="text-xl">×</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                )) }
 
-                        {/* Conditionally show VAT if vat > 0 */ }
-                        <div className="vat flex justify-between" style={ { display: vat > 0 ? 'flex' : 'none' } }>
-                            <span>{ invoiceData.items.some(item => item.showTax) ? `VAT ${ vatPercentage }%` : '' }:</span>
-                            <span className="ml-4">{ formatCurrency(vat, currencySymbol) }</span>
-                        </div>
+                {/* Add Item Buttons and Total */ }
+                <div className="flex flex-row justify-between mt-4 space-x-4">
+                    {/* Add New Item Button */ }
+                    <div className="flex flex-col space-y-4 flex-1">
+                        <button
+                            onClick={ addNewItem }
+                            className="py-2 bg-light-navy-blue text-white rounded-md hover:bg-light-navy-blue-darker w-full"
+                            style={ { backgroundColor: '#E0E6ED', color: '#1A1F36' } } // Light navy blue
+                        >
+                            Add New Item
+                        </button>
+                    </div>
 
-                        {/* Adjusted TOTAL section with aligned spacing */ }
-                        <div className="total flex justify-between items-center">
-                            {/* TOTAL:ZAR with edit dropdown immediately after */ }
-                            <div className="flex items-center space-x-2">
-                                <span className="flex-none">TOTAL: { currency }</span>
+                    {/* Add Saved Items Button */ }
+                    <div className="flex flex-col space-y-4 flex-1">
+                        <button
+                            onClick={ openSavedItemsModal }
+                            className="py-2 bg-light-navy-blue text-white rounded-md hover:bg-light-navy-blue-darker w-full"
+                            style={ { backgroundColor: '#E0E6ED', color: '#1A1F36' } } // Light navy blue
+                        >
+                            Add Saved Items
+                        </button>
 
-                                {/* Smaller Currency Dropdown placed right next to TOTAL:ZAR */ }
-                                <select
-                                    className="px-1 py-0.5 text-xs bg-white border border-gray-300 rounded-md"
-                                    value={ currency }
-                                    onChange={ (e) => handleCurrencyChange(e.target.value) }
-                                >
-                                    <option value="ZAR">ZAR</option>
-                                    <option value="USD">USD</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
-                                </select>
+                        {/* Total section under the "Add Saved Items" button */ }
+                        <div className="flex flex-col space-y-2 amount-details mt-4">
+                            <div className="subtotal flex justify-between">
+                                <span>Subtotal:</span>
+                                <span className="ml-4">{ formatCurrency(subtotal, currencySymbol) }</span>
                             </div>
 
-                            {/* 0.00 with currency symbol aligned normally */ }
-                            <span className="ml-4 flex-none">
+                            {/* Conditionally show VAT if vat > 0 */ }
+                            <div className="vat flex justify-between" style={ { display: vat > 0 ? 'flex' : 'none' } }>
+                                <span>{ invoiceData.items.some(item => item.showTax) ? `VAT ${ vatPercentage }%` : '' }:</span>
+                                <span className="ml-4">{ formatCurrency(vat, currencySymbol) }</span>
+                            </div>
+
+                            {/* Adjusted TOTAL section with aligned spacing */ }
+                            <div className="total flex justify-between items-center">
+                                {/* TOTAL:ZAR with edit dropdown immediately after */ }
+                                <div className="flex items-center space-x-2">
+                                    <span className="flex-none">TOTAL: { currency }</span>
+
+                                    {/* Smaller Currency Dropdown placed right next to TOTAL:ZAR */ }
+                                    <select
+                                        className="px-1 py-0.5 text-xs bg-white border border-gray-300 rounded-md"
+                                        value={ currency }
+                                        onChange={ (e) => handleCurrencyChange(e.target.value) }
+                                    >
+                                        <option value="ZAR">ZAR</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="GBP">GBP</option>
+                                    </select>
+                                </div>
+
+                                {/* 0.00 with currency symbol aligned normally */ }
+                                <span className="ml-4 flex-none">
                                 { currencySymbol }{ formatCurrency(total, currencySymbol) }
                             </span>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div className="mt-6">
+                    {/* Terms and Conditions Section */ }
+                    <div className="flex flex-row justify-between mt-4">
+                        <div className="terms flex-1 mr-4">
+                            <label className="block text-sm font-medium text-gray-700">Terms and Conditions</label>
+                            <textarea
+                                placeholder="Terms and conditions"
+                                value={ termsConditions }
+                                onChange={ (e) => setTermsConditions(e.target.value) }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
+                            />
+                        </div>
+                        {/* Signature Section */ }
+                        <div className="signature flex-2">
+                            <label className="block text-sm font-medium text-gray-700">Signature</label>
+
+                            {/* Updated Signature Component */ }
+                            <Signature
+                                signature={ signature }
+                                onChange={ handleSignatureChange }
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+                                style={ { height: '100px', maxWidth: '270px' } }
+                            />
+                        </div>
+                    </div>
+
+                    {/* Tax and Saved Items Modal */ }
+                    <TaxModal
+                        isOpen={ isTaxModalOpen }
+                        onClose={ closeTaxModal }
+                        onSave={ (taxName, taxPercentage) => saveTaxDetails(invoiceData.items.length - 1, taxName, taxPercentage) }
+                    />
+                    <SavedItemsModal
+                        isOpen={ isSavedItemsModalOpen }
+                        onClose={ closeSavedItemsModal }
+                        onSelectItems={ addSavedItems }
+                        savedItems={ savedItems }
+                    />
                 </div>
             </div>
-
-            <div className="mt-6">
-                {/* Terms and Conditions Section */ }
-                <div className="flex flex-row justify-between mt-4">
-                    <div className="terms flex-1 mr-4">
-                        <label className="block text-sm font-medium text-gray-700">Terms and Conditions</label>
-                        <textarea
-                            placeholder="Terms and conditions"
-                            value={ termsConditions }
-                            onChange={ (e) => setTermsConditions(e.target.value) }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                            style={ { height: '100px', resize: 'none', maxWidth: '570px' } }
-                        />
-                    </div>
-                    {/* Signature Section */ }
-                    <div className="signature flex-2">
-                        <label className="block text-sm font-medium text-gray-700">Signature</label>
-
-                        {/* Updated Signature Component */ }
-                        <Signature
-                            signature={ signature }
-                            onChange={ handleSignatureChange }
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                            style={ { height: '100px', maxWidth: '270px' } }
-                        />
-
-                        {/* Generate PDF Button */ }
-                        <div className="mt-4">
-                            <button
-                                onClick={ generatePDF }
-                                className="py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 w-full"
-                            >
-                                Generate PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Save Item Button */ }
-                <div className="flex mt-4">
-                    <button
-                        onClick={ saveCurrentItem }
-                        className="py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full"
-                    >
-                        Save Item
-                    </button>
-                </div>
-
-                {/* Tax and Saved Items Modal */ }
-                <TaxModal
-                    isOpen={ isTaxModalOpen }
-                    onClose={ closeTaxModal }
-                    onSave={ (taxName, taxPercentage) => saveTaxDetails(invoiceData.items.length - 1, taxName, taxPercentage) }
-                />
-                <SavedItemsModal
-                    isOpen={ isSavedItemsModalOpen }
-                    onClose={ closeSavedItemsModal }
-                    onSelectItems={ addSavedItems }
-                    savedItems={ savedItems }
-                />
+            {/* Generate PDF Button */ }
+            <div className="my-4 max-w-4xl justify-center flex mx-auto">
+                <button
+                    onClick={ generatePDF }
+                    className="py-2 shadow-2xl bg-purple-500 text-white rounded-md hover:bg-purple-600 w-full"
+                >
+                    Generate PDF
+                </button>
             </div>
         </div>
+
     );
 };
 
