@@ -1,123 +1,241 @@
+// InvoiceDocument.tsx
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
-
-interface InvoiceData {
-  invoiceNumber: string;
-  date: string;
-  dueDate: string;
-  username: string;
-  email: string;
-  company: string;
-  clientName: string;
-  clientEmail: string;
-  clientAddress: string;
-  companyAddress: string;
-  companyContact: string;
-  items: Array<{ name: string; amount: number; description: string }>;
-  total: number;
-  paymentDueDate: string;
-  lateFee: number;
-  termsConditions: string;
-  taxRate: number;
-  totalTax: number;
-  signature?: string;
-}
+import { Document, Image, Page, StyleSheet, Text, View, } from '@react-pdf/renderer';
+import { formatCurrency } from './currency';
 
 const styles = StyleSheet.create({
-  page: {
-    padding: '40px',
-    backgroundColor: '#ffffff'
-  },
-  header: {
-    borderBottom: '2px solid #000000',
-    paddingBottom: '10px',
-    marginBottom: '20px'
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold'
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666666'
-  },
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: '5px'
-  },
-  total: {
-    borderTop: '2px solid #000000',
-    paddingTop: '10px',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  section: {
-    marginBottom: '15px'
-  },
-  bold: {
-    fontWeight: 'bold'
-  },
-  signature: {
-    marginTop: '20px',
-    borderTop: '1px solid #000000',
-    paddingTop: '10px',
-  }
+    page: {
+        padding: 40,
+        fontSize: 12,
+        fontFamily: 'Helvetica',
+        lineHeight: 1.5,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 40,
+    },
+    companyInfo: {
+        flexDirection: 'column',
+        width: '60%',
+    },
+    logo: {
+        width: 120,
+        height: 60,
+    },
+    invoiceTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        textAlign: 'right',
+        width: '40%',
+    },
+    section: {
+        marginBottom: 20,
+    },
+    invoiceInfo: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    invoiceLeft: {
+        flexDirection: 'column',
+        width: '50%',
+    },
+    invoiceRight: {
+        flexDirection: 'column',
+        width: '50%',
+        textAlign: 'right',
+    },
+    table: {
+        display: 'flex',
+        width: 'auto',
+        borderStyle: 'solid',
+        borderColor: '#bfbfbf',
+        borderWidth: 1,
+        borderRightWidth: 0,
+        borderBottomWidth: 0,
+    },
+    tableRow: {
+        flexDirection: 'row',
+    },
+    tableHeader: {
+        backgroundColor: '#f2f2f2',
+        borderBottomColor: '#bfbfbf',
+        borderBottomWidth: 1,
+        fontWeight: 'bold',
+    },
+    tableCol: {
+        borderStyle: 'solid',
+        borderColor: '#bfbfbf',
+        borderBottomWidth: 1,
+        borderRightWidth: 1,
+        padding: 8,
+    },
+    tableCell: {
+        margin: 'auto',
+        marginTop: 5,
+        fontSize: 10,
+    },
+    totals: {
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        marginTop: 20,
+    },
+    totalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '40%',
+        marginBottom: 5,
+    },
+    totalLabel: {
+        fontWeight: 'bold',
+    },
+    totalValue: {
+        fontWeight: 'bold',
+    },
+    signature: {
+        marginTop: 50,
+        textAlign: 'right',
+    },
+    terms: {
+        marginTop: 30,
+        fontSize: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#bfbfbf',
+        paddingTop: 10,
+    },
 });
 
-const InvoicePDF: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => (
-  <Document>
-    <Page style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Invoice</Text>
-        <Text>Invoice Number: {invoiceData.invoiceNumber}</Text>
-        <Text>Date: {invoiceData.date}</Text>
-        <Text>Due Date: {invoiceData.dueDate}</Text>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.bold}>Client Information</Text>
-        <Text>Name: {invoiceData.clientName}</Text>
-        <Text>Address: {invoiceData.clientAddress}</Text>
-        <Text>Email: {invoiceData.clientEmail}</Text>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.bold}>Company Information</Text>
-        <Text>Name: {invoiceData.company}</Text>
-        <Text>Address: {invoiceData.companyAddress}</Text>
-        <Text>Contact: {invoiceData.companyContact}</Text>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.bold}>Payment Terms</Text>
-        <Text>Payment Due Date: {invoiceData.paymentDueDate}</Text>
-        <Text>Late Fee: ${invoiceData.lateFee.toFixed(2)}</Text>
-        <Text>Terms and Conditions: {invoiceData.termsConditions}</Text>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.bold}>Tax Calculation</Text>
-        <Text>Tax Rate: {invoiceData.taxRate}%</Text>
-        <Text>Total Tax: ${invoiceData.totalTax.toFixed(2)}</Text>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.bold}>Invoice Items</Text>
-        {invoiceData.items.map((item, index) => (
-          <View key={index} style={styles.item}>
-            <Text>{item.name}</Text>
-            <Text>${item.amount.toFixed(2)}</Text>
-          </View>
-        ))}
-      </View>
-      <View style={styles.total}>
-        <Text>Total:</Text>
-        <Text>${invoiceData.total.toFixed(2)}</Text>
-      </View>
-      {invoiceData.signature && (
-        <View style={styles.signature}>
-          <Text>Signature:</Text>
-          <Image src={invoiceData.signature} style={{ width: 200, height: 100 }} />
-        </View>
-      )}
-    </Page>
-  </Document>
-);
+interface ItemData {
+    qty: string;
+    description: string;
+    unitPrice: string;
+    amount: string;
+    taxName: string;
+    taxPercentage: string;
+    showTax: boolean;
+}
 
-export default InvoicePDF;
+interface InvoiceData {
+    from: string;
+    billTo: string;
+    shipTo: string;
+    invoiceNumber: string;
+    invoiceDate: string;
+    poNumber: string;
+    logo: string | null; // Base64 string or URL
+    items: ItemData[];
+    showTax: boolean;
+    dueDate?: string;
+    subtotal: number;
+    vat: number;
+    total: number;
+    vatPercentage: number;
+    termsConditions: string;
+    signature: string | null; // Base64 string or URL
+}
+
+interface InvoiceDocumentProps {
+    invoiceData: InvoiceData;
+}
+
+const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({ invoiceData }) => {
+    return (
+        <Document>
+            <Page size="A4" style={ styles.page }>
+                {/* Header */ }
+                <View style={ styles.header }>
+                    <View style={ styles.companyInfo }>
+                        { invoiceData.logo && (
+                            <Image src={ invoiceData.logo } style={ styles.logo }/>
+                        ) }
+                        <Text>{ invoiceData.from }</Text>
+                    </View>
+                    <Text style={ styles.invoiceTitle }>INVOICE</Text>
+                </View>
+
+                {/* Invoice Info */ }
+                <View style={ styles.invoiceInfo }>
+                    <View style={ styles.invoiceLeft }>
+                        <Text style={ { fontWeight: 'bold', marginBottom: 5 } }>Bill To:</Text>
+                        <Text>{ invoiceData.billTo }</Text>
+                        { invoiceData.shipTo && (
+                            <>
+                                <Text style={ { fontWeight: 'bold', marginTop: 15 } }>Ship To:</Text>
+                                <Text>{ invoiceData.shipTo }</Text>
+                            </>
+                        ) }
+                    </View>
+                    <View style={ styles.invoiceRight }>
+                        <Text>Invoice #: { invoiceData.invoiceNumber }</Text>
+                        <Text>Invoice Date: { invoiceData.invoiceDate }</Text>
+                        <Text>Due Date: { invoiceData.dueDate || 'N/A' }</Text>
+                        { invoiceData.poNumber && (
+                            <Text>PO #: { invoiceData.poNumber }</Text>
+                        ) }
+                    </View>
+                </View>
+
+                {/* Items Table */ }
+                <View style={ [styles.table, { marginTop: 30 }] }>
+                    {/* Table Header */ }
+                    <View style={ [styles.tableRow, styles.tableHeader] }>
+                        <Text style={ [styles.tableCol, { width: '10%' }] }>Qty</Text>
+                        <Text style={ [styles.tableCol, { width: '50%' }] }>Description</Text>
+                        <Text style={ [styles.tableCol, { width: '20%', textAlign: 'right' }] }>Unit Price</Text>
+                        <Text style={ [styles.tableCol, { width: '20%', textAlign: 'right' }] }>Amount</Text>
+                    </View>
+                    {/* Table Rows */ }
+                    { invoiceData.items.map((item, index) => (
+                        <View style={ styles.tableRow } key={ index }>
+                            <Text style={ [styles.tableCol, { width: '10%' }] }>{ item.qty }</Text>
+                            <Text style={ [styles.tableCol, { width: '50%' }] }>{ item.description }</Text>
+                            <Text style={ [styles.tableCol, { width: '20%', textAlign: 'right' }] }>
+                                { formatCurrency(parseFloat(item.unitPrice), 'R') }
+                            </Text>
+                            <Text style={ [styles.tableCol, { width: '20%', textAlign: 'right' }] }>
+                                { formatCurrency(parseFloat(item.amount), 'R') }
+                            </Text>
+                        </View>
+                    )) }
+                </View>
+
+                {/* Totals */ }
+                <View style={ styles.totals }>
+                    <View style={ styles.totalRow }>
+                        <Text style={ styles.totalLabel }>Subtotal:</Text>
+                        <Text>{ formatCurrency(invoiceData.subtotal, 'R') }</Text>
+                    </View>
+                    { invoiceData.vat > 0 && (
+                        <View style={ styles.totalRow }>
+                            <Text style={ styles.totalLabel }>VAT ({ invoiceData.vatPercentage }%):</Text>
+                            <Text>{ formatCurrency(invoiceData.vat, 'R') }</Text>
+                        </View>
+                    ) }
+                    <View style={ styles.totalRow }>
+                        <Text style={ styles.totalLabel }>Total:</Text>
+                        <Text style={ styles.totalValue }>{ formatCurrency(invoiceData.total, 'R') }</Text>
+                    </View>
+                </View>
+
+                {/* Signature */ }
+                { invoiceData.signature && (
+                    <View style={ styles.signature }>
+                        <Image src={ invoiceData.signature } style={ { width: 100, height: 50 } }/>
+                        <Text>Authorized Signature</Text>
+                    </View>
+                ) }
+
+                {/* Terms and Conditions */ }
+                { invoiceData.termsConditions && (
+                    <View style={ styles.terms }>
+                        <Text style={ { fontWeight: 'bold', marginBottom: 5 } }>Terms and Conditions:</Text>
+                        <Text>{ invoiceData.termsConditions }</Text>
+                    </View>
+                ) }
+            </Page>
+        </Document>
+    );
+};
+
+export default InvoiceDocument;

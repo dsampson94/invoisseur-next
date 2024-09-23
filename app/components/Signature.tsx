@@ -1,33 +1,27 @@
-import React, { useRef } from 'react';
+// Signature.tsx
+import React, { ChangeEvent } from 'react';
 
 interface SignatureProps {
-  signature: File | null;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string; 
-  style?: React.CSSProperties;
+    signature: string | null;
+    onChange: (file: File | null) => void;
+    className?: string;
+    style?: React.CSSProperties;
 }
 
 const Signature: React.FC<SignatureProps> = ({ signature, onChange, className, style }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] || null;
+        onChange(file);
+    };
 
-  return (
-    <div className={className} style={style}>
-      {signature && (
-        <img 
-          src={URL.createObjectURL(signature)} 
-          alt="Signature" 
-          className="mt-2 mb-2 w-full h-24 object-contain" 
-        />
-      )}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={onChange}
-        className="block w-full"
-        ref={inputRef}
-      />
-    </div>
-  );
+    return (
+        <div className={className} style={style}>
+            <input type="file" accept="image/png, image/jpeg" onChange={handleFileChange} />
+            {signature && (
+                <img src={signature} alt="Signature" style={{ width: '100px', height: '50px', marginTop: '10px' }} />
+            )}
+        </div>
+    );
 };
 
 export default Signature;
