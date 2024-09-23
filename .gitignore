@@ -38,3 +38,5 @@ myenv
 /myenv
 venv
 /venv
+.next
+.idea
