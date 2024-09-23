@@ -1,13 +1,13 @@
 'use client';
 
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import TaxModal from './TaxModal';
 import { formatCurrency } from './currency';
 import ImageUploader from './ImageUploader';
 import InvoiceDocument from '@/app/components/InvoicePDF';
 import currencySymbolMap from 'currency-symbol-map';
 import InputField from '@/app/components/InputField';
+import dynamic from 'next/dynamic';
 
 interface ItemData {
     qty: string;
@@ -38,6 +38,11 @@ interface InvoiceData {
     termsConditions: string;
     signature: string | null;
 }
+
+const PDFDownloadLink = dynamic(
+    () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+    { ssr: false }
+);
 
 const InvoiceForm: React.FC = () => {
     const [currency, setCurrency] = useState('USD');
