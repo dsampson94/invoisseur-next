@@ -441,7 +441,7 @@ yOffset = Math.min(signatureY - 60, yOffset);
   };
 
   return (
-    <div className="p-4 flex flex-col space-y-4 px-[7cm]"> {/* Add padding to the left and right */}
+    <div className="p-4 flex min-h-screen flex-col space-y-4 px-[7cm]">
       <div className="flex flex-row space-x-4">
         <div className="flex-1 mr-4">
           {/* From Section */}
