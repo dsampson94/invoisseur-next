@@ -3,6 +3,7 @@ import React from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import InvoiceForm from './components/InvoiceForm';
+import { Analytics } from '@vercel/analytics/react';
 
 const Page = () => {
   return (
@@ -18,6 +19,7 @@ const Page = () => {
       </main>
       
       <Footer />
+      <Analytics/>
     </div>
   );
 };
