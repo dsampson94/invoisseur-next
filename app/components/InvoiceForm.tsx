@@ -8,6 +8,7 @@ import InvoiceDocument from '@/app/components/InvoicePDF';
 import currencySymbolMap from 'currency-symbol-map';
 import InputField from '@/app/components/InputField';
 import dynamic from 'next/dynamic';
+import currencyCodes from 'currency-codes';
 
 interface ItemData {
     qty: string;
@@ -80,14 +81,11 @@ const InvoiceForm: React.FC = () => {
     const [termsConditions, setTermsConditions] = useState('');
     const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
 
-    // List of all currency codes and names
-    const currencyList = [
-        { code: 'USD', name: 'US Dollar' },
-        { code: 'EUR', name: 'Euro' },
-        { code: 'GBP', name: 'British Pound' },
-        { code: 'JPY', name: 'Japanese Yen' },
-        { code: 'AUD', name: 'Australian Dollar' },
-    ];
+    // Get the list of all currencies from currency-codes package
+    const currencyList = currencyCodes.data.map((currency) => ({
+        code: currency.code,
+        name: currency.currency,
+    }));
 
     // Calculate subtotal, VAT, and total
     const calculateTotals = () => {
@@ -407,20 +405,23 @@ const InvoiceForm: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                     <span className="flex-none">TOTAL: { currency }</span>
 
-                                    {/* Currency Dropdown */ }
-                                    <select
-                                        className="px-1 py-0.5 text-xs bg-white border border-gray-300 rounded-md"
-                                        value={ currency }
-                                        onChange={ (e: ChangeEvent<HTMLSelectElement>) =>
-                                            handleCurrencyChange(e.target.value)
-                                        }
-                                    >
-                                        { currencyList.map((curr) => (
-                                            <option key={ curr.code } value={ curr.code }>
-                                                { curr.code } - { curr.name }
-                                            </option>
-                                        )) }
-                                    </select>
+                                    {/* Currency Dropdown */}
+                                    <div className="flex items-center space-x-2">
+                                        <span className="flex-none">Currency:</span>
+                                        <select
+                                            className="px-1 py-0.5 text-xs max-w-20 bg-white border border-gray-300 rounded-md"
+                                            value={currency}
+                                            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                                handleCurrencyChange(e.target.value)
+                                            }
+                                        >
+                                            {currencyList.map((curr) => (
+                                                <option key={curr.code} value={curr.code}>
+                                                    {curr.code} - {curr.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {/* Total Amount */ }
