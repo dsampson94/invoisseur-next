@@ -1,7 +1,7 @@
 // InvoiceDocument.tsx
 import React from 'react';
 import { Document, Image, Page, StyleSheet, Text, View, } from '@react-pdf/renderer';
-import { formatCurrency } from './currency';
+import { formatCurrency } from '../../utils/currency';
 
 const styles = StyleSheet.create({
     page: {

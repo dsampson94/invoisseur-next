@@ -1,4 +1,3 @@
-// currency.tsx
 export interface Currency {
     code: string;
     symbol: string;

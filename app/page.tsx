@@ -2,7 +2,7 @@
 import React from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import InvoiceForm from './components/InvoiceForm';
+import InvoiceForm from './components/invoice/InvoiceForm';
 import { Analytics } from '@vercel/analytics/react';
 
 const Page = () => {

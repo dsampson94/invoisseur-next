@@ -1,4 +1,3 @@
-// ImageUploader.tsx
 import React, { ChangeEvent, DragEvent, useState } from 'react';
 
 interface ImageUploaderProps {
