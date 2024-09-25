@@ -124,7 +124,7 @@ interface ItemData {
 
 interface InvoiceData {
     from: {
-        postalAddress?: string;
+        name?: string;
         physicalAddress?: string;
         idNumber?: string;
         tel?: string;
@@ -181,10 +181,8 @@ const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({ invoiceData }) => {
                     {/* FROM Section */}
                     <View style={styles.fromSection}>
                         <Text style={styles.sectionTitle}>From</Text>
-                        <Text style={styles.field}>{invoiceData.from.postalAddress || ''}</Text>
-                        <Text style={styles.field}>{invoiceData.from.physicalAddress || ''}</Text>
-                        <Text style={styles.field}>ID Number: {invoiceData.from.idNumber || ''}</Text>
-                        <Text style={styles.field}>Tel: {invoiceData.from.tel || ''}</Text>
+                        <Text style={styles.field}>Name: {invoiceData.from.name || ''}</Text>
+                        <Text style={styles.field}>Address: {invoiceData.from.physicalAddress || ''}</Text>
                         <Text style={styles.field}>Cell: {invoiceData.from.cell || ''}</Text>
                         <Text style={styles.field}>Email: {invoiceData.from.email || ''}</Text>
                         <Text style={styles.field}>Tax No: {invoiceData.from.taxNo || ''}</Text>
@@ -193,12 +191,11 @@ const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({ invoiceData }) => {
                     {/* TO Section */}
                     <View style={styles.toSection}>
                         <Text style={styles.sectionTitle}>Bill To</Text>
-                        <Text style={styles.field}>{invoiceData.to.name || ''}</Text>
+                        <Text style={styles.field}>Name:{invoiceData.to.name || ''}</Text>
+                        <Text style={styles.field}>Address: {invoiceData.to.postalAddress || ''}</Text>
+                        <Text style={styles.field}>Cell: {invoiceData.to.tel || ''}</Text>
                         <Text style={styles.field}>VAT Reg No: {invoiceData.to.vatRegNo || ''}</Text>
                         <Text style={styles.field}>CO Reg No: {invoiceData.to.coRegNo || ''}</Text>
-                        <Text style={styles.field}>{invoiceData.to.postalAddress || ''}</Text>
-                        <Text style={styles.field}>Tel: {invoiceData.to.tel || ''}</Text>
-                        <Text style={styles.field}>Fax: {invoiceData.to.fax || ''}</Text>
                     </View>
                 </View>
 

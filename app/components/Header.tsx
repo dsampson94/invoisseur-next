@@ -5,7 +5,7 @@ const Header = () => {
         <header className="bg-gray-800 text-white p-4 text-center flex shadow-xl items-center justify-center">
             <img
                 src="/inv-logo.png"
-                className="h-14 w-auto mr-4"
+                className="h-10 w-auto mr-4"
                 alt="logo"/>
             <div>
                 <h1 className="text-3xl font-bold">Invoisseur</h1>

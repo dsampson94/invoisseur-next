@@ -1,12 +1,15 @@
+// InvoiceItems.tsx
+
 import React from 'react';
 import InputField from '@/app/components/invoice/InputField';
-import { FaTrash } from 'react-icons/fa'; // Import the trash icon from react-icons
+import { FaTrash } from 'react-icons/fa';
 
 interface ItemData {
     hours?: string;
     description?: string;
     hourlyRate?: string;
     amount?: string;
+    isAmountManual?: boolean;
 }
 
 interface InvoiceItemsProps {
@@ -29,7 +32,14 @@ const InvoiceItems: React.FC<InvoiceItemsProps> = ({
         <div className="mt-6">
             <h3 className="text-xl font-bold mb-2">Items:</h3>
             {items.map((item, index) => (
-                <div key={index} className="border p-4 mb-4 rounded-md">
+                <div key={index} className="border mb-4 flex space-x-2 flex-row rounded-md">
+                    <InputField
+                        label="Detailed Description"
+                        name="description"
+                        value={item.description || ''}
+                        onChange={(e) => onItemChange(index, e)}
+                        placeholder="Description"
+                    />
                     <InputField
                         label="Hours"
                         name="hours"
@@ -37,13 +47,6 @@ const InvoiceItems: React.FC<InvoiceItemsProps> = ({
                         onChange={(e) => onItemChange(index, e)}
                         placeholder="Hours"
                         type="number"
-                    />
-                    <InputField
-                        label="Detailed Description"
-                        name="description"
-                        value={item.description || ''}
-                        onChange={(e) => onItemChange(index, e)}
-                        placeholder="Description"
                     />
                     <InputField
                         label="Hourly Rate"
@@ -61,7 +64,7 @@ const InvoiceItems: React.FC<InvoiceItemsProps> = ({
                         placeholder="Amount"
                         type="number"
                     />
-                    <div className="flex justify-end">
+                    <div className="flex justify-end h-9 mt-0.5">
                         <button
                             onClick={() => onRemoveItem(index)}
                             className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"

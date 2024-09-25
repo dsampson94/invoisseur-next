@@ -10,12 +10,13 @@ interface ItemData {
     description?: string;
     hourlyRate?: string;
     amount?: string;
+    isAmountManual?: boolean;
 }
 
 // Updated InvoiceData interface
 interface InvoiceData {
     from: {
-        postalAddress?: string;
+        name?: string;
         physicalAddress?: string;
         idNumber?: string;
         tel?: string;
@@ -23,19 +24,27 @@ interface InvoiceData {
         email?: string;
         taxNo?: string;
     };
-    invoiceDate?: string;
-    invoiceNumber?: string;
-    logo?: string | null;
     to: {
         name?: string;
+        postalAddress?: string;
         vatRegNo?: string;
         coRegNo?: string;
-        postalAddress?: string;
         tel?: string;
         fax?: string;
+        email?: string;
+        contactPerson?: string;
     };
+    invoiceNumber?: string;
+    invoiceDate?: string;
+    dueDate?: string;
+    paymentTerms?: string;
+    currency?: string;
+    poNumber?: string;
     items: ItemData[];
     subtotal?: number;
+    tax?: number;
+    discounts?: number;
+    shipping?: number;
     total?: number;
     bankDetails: {
         accountHolder?: string;
@@ -43,10 +52,13 @@ interface InvoiceData {
         accountNumber?: string;
         branchNumber?: string;
         accountType?: string;
+        swiftCode?: string;
+        iban?: string;
     };
+    logo?: string | null;
     termsConditions?: string;
+    notes?: string;
 }
-
 export const useInvoiceForm = () => {
     const [currency, setCurrency] = useState('USD');
     const [currencySymbol, setCurrencySymbol] = useState('$');
@@ -54,7 +66,7 @@ export const useInvoiceForm = () => {
     // Initialize invoice data with the updated structure
     const [invoiceData, setInvoiceData] = useState<InvoiceData>({
         from: {
-            postalAddress: '',
+            name: '',
             physicalAddress: '',
             idNumber: '',
             tel: '',
@@ -103,25 +115,13 @@ export const useInvoiceForm = () => {
 
     // Calculate subtotal and total
     const calculateTotals = () => {
-        let subtotal = 0;
-
-        const updatedItems = invoiceData.items.map((item) => {
-            const hours = parseFloat(item.hours || '0');
-            const hourlyRate = parseFloat(item.hourlyRate || '0');
-            const amount = hours * hourlyRate;
-            const amountStr = amount.toFixed(2);
-
-            subtotal += amount;
-
-            return {
-                ...item,
-                amount: amountStr,
-            };
-        });
+        const subtotal = invoiceData.items.reduce((sum, item) => {
+            const amount = parseFloat(item.amount || '0');
+            return sum + amount;
+        }, 0);
 
         setInvoiceData((prevData) => ({
             ...prevData,
-            items: updatedItems,
             subtotal,
             total: subtotal,
         }));
@@ -137,10 +137,34 @@ export const useInvoiceForm = () => {
         event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const updatedItems = [...invoiceData.items];
+        const field = event.target.name as keyof ItemData;
+        let value = event.target.value;
+
+        if (
+            (field === 'hours' || field === 'hourlyRate' || field === 'amount') &&
+            isNaN(Number(value))
+        ) {
+            value = '0';
+        }
+
         updatedItems[index] = {
             ...updatedItems[index],
-            [event.target.name as keyof ItemData]: event.target.value,
+            [field]: value,
         };
+
+        // If amount is manually changed, set isAmountManual to true
+        if (field === 'amount') {
+            updatedItems[index].isAmountManual = true;
+        } else if (field === 'hours' || field === 'hourlyRate') {
+            // If hours or hourlyRate change and amount is not manually set, recalculate amount
+            if (!updatedItems[index].isAmountManual) {
+                const hours = parseFloat(updatedItems[index].hours || '0');
+                const hourlyRate = parseFloat(updatedItems[index].hourlyRate || '0');
+                const amount = hours * hourlyRate;
+                updatedItems[index].amount = amount.toFixed(2);
+            }
+        }
+
         setInvoiceData({ ...invoiceData, items: updatedItems });
     };
 

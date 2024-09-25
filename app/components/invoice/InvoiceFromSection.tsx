@@ -49,13 +49,6 @@ const InvoiceFromSection: React.FC<InvoiceHeaderProps> = ({
                 placeholder="ID Number"
             />
             <InputField
-                label="Tel"
-                name="tel"
-                value={from.tel || ''}
-                onChange={handleChange('tel')}
-                placeholder="Telephone Number"
-            />
-            <InputField
                 label="Cell"
                 name="cell"
                 value={from.cell || ''}
