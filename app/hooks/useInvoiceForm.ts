@@ -1,73 +1,111 @@
+// useInvoiceForm.ts
+
 import { useState, useEffect, ChangeEvent } from 'react';
 import currencyCodes from 'currency-codes';
 import currencySymbolMap from 'currency-symbol-map';
 
+// Updated ItemData interface
 interface ItemData {
-    qty: string;
-    description: string;
-    unitPrice: string;
-    amount: string;
-    taxName: string;
-    taxPercentage: string;
-    showTax: boolean;
+    hours?: string;
+    description?: string;
+    hourlyRate?: string;
+    amount?: string;
+    isAmountManual?: boolean;
 }
 
+// Updated InvoiceData interface
 interface InvoiceData {
-    from: string;
-    billTo: string;
-    shipTo: string;
-    invoiceNumber: string;
-    invoiceDate: string;
-    poNumber: string;
-    DueDate: string;
-    logo: string | null;
-    items: ItemData[];
-    showTax: boolean;
+    from: {
+        name?: string;
+        physicalAddress?: string;
+        idNumber?: string;
+        tel?: string;
+        cell?: string;
+        email?: string;
+        taxNo?: string;
+    };
+    to: {
+        name?: string;
+        postalAddress?: string;
+        vatRegNo?: string;
+        coRegNo?: string;
+        tel?: string;
+        fax?: string;
+        email?: string;
+        contactPerson?: string;
+    };
+    invoiceNumber?: string;
+    invoiceDate?: string;
     dueDate?: string;
-    subtotal: number;
-    vat: number;
-    total: number;
-    vatPercentage: number;
-    termsConditions: string;
-    signature: string | null;
+    paymentTerms?: string;
+    currency?: string;
+    poNumber?: string;
+    items: ItemData[];
+    subtotal?: number;
+    tax?: number;
+    discounts?: number;
+    shipping?: number;
+    total?: number;
+    bankDetails: {
+        accountHolder?: string;
+        bank?: string;
+        accountNumber?: string;
+        branchNumber?: string;
+        accountType?: string;
+        swiftCode?: string;
+        iban?: string;
+    };
+    logo?: string | null;
+    termsConditions?: string;
+    notes?: string;
 }
-
 export const useInvoiceForm = () => {
     const [currency, setCurrency] = useState('USD');
     const [currencySymbol, setCurrencySymbol] = useState('$');
-    const [vatPercentage, setVatPercentage] = useState(0.0);
+
+    // Initialize invoice data with the updated structure
     const [invoiceData, setInvoiceData] = useState<InvoiceData>({
-        from: '',
-        billTo: '',
-        shipTo: '',
-        invoiceNumber: '',
+        from: {
+            name: '',
+            physicalAddress: '',
+            idNumber: '',
+            tel: '',
+            cell: '',
+            email: '',
+            taxNo: '',
+        },
         invoiceDate: '',
-        poNumber: '',
-        DueDate: '',
+        invoiceNumber: '',
         logo: null,
+        to: {
+            name: '',
+            vatRegNo: '',
+            coRegNo: '',
+            postalAddress: '',
+            tel: '',
+            fax: '',
+        },
         items: [
             {
-                qty: '',
+                hours: '',
                 description: '',
-                unitPrice: '',
+                hourlyRate: '',
                 amount: '',
-                taxName: '',
-                taxPercentage: '',
-                showTax: false,
             },
         ],
-        showTax: false,
         subtotal: 0,
-        vat: 0,
         total: 0,
-        vatPercentage: 0,
+        bankDetails: {
+            accountHolder: '',
+            bank: '',
+            accountNumber: '',
+            branchNumber: '',
+            accountType: '',
+        },
         termsConditions: '',
-        signature: null,
     });
 
     const [termsConditions, setTermsConditions] = useState('');
-    const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
-    const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null);
 
     // Get the list of all currencies
     const currencyList = currencyCodes.data.map((currency) => ({
@@ -75,37 +113,23 @@ export const useInvoiceForm = () => {
         name: currency.currency,
     }));
 
-    // Calculate subtotal, VAT, and total
+    // Calculate subtotal and total
     const calculateTotals = () => {
-        let subtotal = 0;
-        let vat = 0;
-
-        invoiceData.items.forEach((item) => {
-            const qty = parseFloat(item.qty || '0');
-            const unitPrice = parseFloat(item.unitPrice || '0');
-            const amount = qty * unitPrice;
-            item.amount = amount.toFixed(2);
-
-            subtotal += amount;
-
-            if (item.showTax) {
-                const taxPercentage = parseFloat(item.taxPercentage || '0');
-                vat += (taxPercentage / 100) * amount;
-            }
-        });
+        const subtotal = invoiceData.items.reduce((sum, item) => {
+            const amount = parseFloat(item.amount || '0');
+            return sum + amount;
+        }, 0);
 
         setInvoiceData((prevData) => ({
             ...prevData,
             subtotal,
-            vat,
-            total: subtotal + vat,
-            vatPercentage: vat > 0 && subtotal > 0 ? (vat / subtotal) * 100 : 0,
+            total: subtotal,
         }));
     };
 
     useEffect(() => {
         calculateTotals();
-    }, [invoiceData.items, vatPercentage]);
+    }, [invoiceData.items]);
 
     // Handle changes in item fields
     const handleItemChange = (
@@ -113,23 +137,62 @@ export const useInvoiceForm = () => {
         event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const updatedItems = [...invoiceData.items];
+        const field = event.target.name as keyof ItemData;
+        let value = event.target.value;
+
+        if (
+            (field === 'hours' || field === 'hourlyRate' || field === 'amount') &&
+            isNaN(Number(value))
+        ) {
+            value = '0';
+        }
+
         updatedItems[index] = {
             ...updatedItems[index],
-            [event.target.name as keyof ItemData]: event.target.value,
+            [field]: value,
         };
+
+        // If amount is manually changed, set isAmountManual to true
+        if (field === 'amount') {
+            updatedItems[index].isAmountManual = true;
+        } else if (field === 'hours' || field === 'hourlyRate') {
+            // If hours or hourlyRate change and amount is not manually set, recalculate amount
+            if (!updatedItems[index].isAmountManual) {
+                const hours = parseFloat(updatedItems[index].hours || '0');
+                const hourlyRate = parseFloat(updatedItems[index].hourlyRate || '0');
+                const amount = hours * hourlyRate;
+                updatedItems[index].amount = amount.toFixed(2);
+            }
+        }
+
         setInvoiceData({ ...invoiceData, items: updatedItems });
     };
 
-    // Handle changes in invoice data fields
+    // Handle changes in nested invoice data fields
     const handleInvoiceDataChange = (
-        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        section: 'from' | 'to' | 'bankDetails',
+        field: string,
+        value: string
     ) => {
-        const { name, value } = event.target;
-        setInvoiceData({ ...invoiceData, [name]: value });
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            [section]: {
+                ...prevData[section],
+                [field]: value,
+            },
+        }));
     };
 
-    // Handle file uploads (logo and signature)
-    const handleFileChangeOrDrop = (file: File | null, field: 'logo' | 'signature') => {
+    // Handle changes in top-level invoice data fields
+    const handleTopLevelChange = (field: string, value: string | null) => {
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            [field]: value,
+        }));
+    };
+
+    // Handle file uploads (logo)
+    const handleFileChangeOrDrop = (file: File | null, field: 'logo') => {
         if (file) {
             const reader = new FileReader();
             reader.onload = () => {
@@ -142,36 +205,6 @@ export const useInvoiceForm = () => {
         } else {
             setInvoiceData((prevData) => ({ ...prevData, [field]: null }));
         }
-    };
-
-    // Modal Controls
-    const openTaxModal = (index: number) => {
-        setCurrentItemIndex(index);
-        setIsTaxModalOpen(true);
-    };
-    const closeTaxModal = () => setIsTaxModalOpen(false);
-
-    // Save Tax Details from Modal
-    const saveTaxDetails = (
-        index: number,
-        taxName: string,
-        enteredTaxPercentage: string
-    ) => {
-        const taxPercentageValue = parseFloat(enteredTaxPercentage) || 0;
-
-        setInvoiceData((prevData) => {
-            const updatedItems = [...prevData.items];
-            updatedItems[index] = {
-                ...updatedItems[index],
-                taxName,
-                taxPercentage: enteredTaxPercentage,
-                showTax: true,
-            };
-            return { ...prevData, items: updatedItems };
-        });
-
-        setVatPercentage(taxPercentageValue);
-        calculateTotals();
     };
 
     // Remove an item from the invoice
@@ -189,13 +222,10 @@ export const useInvoiceForm = () => {
             items: [
                 ...prevData.items,
                 {
-                    qty: '',
+                    hours: '',
                     description: '',
-                    unitPrice: '',
+                    hourlyRate: '',
                     amount: '',
-                    taxName: '',
-                    taxPercentage: '',
-                    showTax: false,
                 },
             ],
         }));
@@ -211,19 +241,14 @@ export const useInvoiceForm = () => {
     return {
         currency,
         currencySymbol,
-        vatPercentage,
         invoiceData,
         termsConditions,
-        isTaxModalOpen,
-        currentItemIndex,
         currencyList,
         setTermsConditions,
-        openTaxModal,
-        closeTaxModal,
         handleItemChange,
         handleInvoiceDataChange,
+        handleTopLevelChange,
         handleFileChangeOrDrop,
-        saveTaxDetails,
         removeItem,
         addNewItem,
         handleCurrencyChange,

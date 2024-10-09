@@ -40,3 +40,5 @@ venv
 /venv
 .next
 .idea
+context.config.json
+context.txt

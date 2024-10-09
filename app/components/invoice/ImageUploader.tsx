@@ -2,7 +2,7 @@ import React, { ChangeEvent, DragEvent, useState } from 'react';
 
 interface ImageUploaderProps {
     label: string;
-    image: string | null;
+    image: any;
     onChange: (file: File | null) => void;
     className?: string;
     style?: React.CSSProperties;

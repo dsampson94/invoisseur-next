@@ -1,94 +1,52 @@
-import React, { ChangeEvent } from 'react';
-import { formatCurrency } from '@/app/utils/currency';
-
-interface Currency {
-    code: string;
-    name: string;
-}
-
-interface ItemData {
-    showTax: boolean;
-}
+import React from 'react';
+import InputField from '@/app/components/invoice/InputField';
 
 interface InvoiceTotalsProps {
-    subtotal: number;
-    vat: number;
-    total: number;
-    vatPercentage: number;
+    subtotal?: number;
+    total?: number;
     currency: string;
     currencySymbol: string;
-    currencyList: Currency[];
+    currencyList: { code: string; name: string }[];
     onCurrencyChange: (currencyCode: string) => void;
-    items: ItemData[];
 }
 
 const InvoiceTotals: React.FC<InvoiceTotalsProps> = ({
                                                          subtotal,
-                                                         vat,
                                                          total,
-                                                         vatPercentage,
                                                          currency,
                                                          currencySymbol,
                                                          currencyList,
                                                          onCurrencyChange,
-                                                         items,
                                                      }) => {
     return (
-        <div className="flex flex-col space-y-4 flex-1">
-            <div className="flex flex-col space-y-2 amount-details mt-4">
-                <div className="subtotal flex justify-between">
-                    <span>Subtotal:</span>
-                    <span className="ml-4">
-            {formatCurrency(subtotal, currencySymbol)}
-          </span>
-                </div>
-
-                {/* Conditionally show VAT if vat > 0 */}
-                <div
-                    className="vat flex justify-between"
-                    style={{ display: vat > 0 ? 'flex' : 'none' }}
+        <div className="mt-6">
+            <h3 className="text-xl font-bold mb-2">Totals:</h3>
+            <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2">Currency:</label>
+                <select
+                    value={currency}
+                    onChange={(e) => onCurrencyChange(e.target.value)}
+                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 >
-          <span>
-            {items.some((item) => item.showTax)
-                ? `VAT ${vatPercentage.toFixed(2)}%`
-                : ''}
-              :
-          </span>
-                    <span className="ml-4">{formatCurrency(vat, currencySymbol)}</span>
-                </div>
-
-                {/* TOTAL section with aligned spacing */}
-                <div className="total flex justify-between items-center">
-                    {/* TOTAL with currency dropdown */}
-                    <div className="flex items-center space-x-2">
-                        <span className="flex-none">TOTAL: {currency}</span>
-
-                        {/* Currency Dropdown */}
-                        <div className="flex items-center space-x-2">
-                            <span className="flex-none">Currency:</span>
-                            <select
-                                className="px-1 py-0.5 text-xs max-w-20 bg-white border border-gray-300 rounded-md"
-                                value={currency}
-                                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                                    onCurrencyChange(e.target.value)
-                                }
-                            >
-                                {currencyList.map((curr) => (
-                                    <option key={curr.code} value={curr.code}>
-                                        {curr.code} - {curr.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Total Amount */}
-                    <span className="ml-4 flex-none">
-            {currencySymbol}
-                        {formatCurrency(total, currencySymbol)}
-          </span>
-                </div>
+                    {currencyList.map((curr) => (
+                        <option key={curr.code} value={curr.code}>
+                            {curr.name} ({curr.code})
+                        </option>
+                    ))}
+                </select>
             </div>
+            <InputField
+                label="Subtotal"
+                name="subtotal"
+                value={`${currencySymbol}${subtotal?.toFixed(2)}`}
+                onChange={() => {}}
+            />
+            <InputField
+                label="Total"
+                name="total"
+                value={`${currencySymbol}${total?.toFixed(2)}`}
+                onChange={() => {}}
+            />
         </div>
     );
 };

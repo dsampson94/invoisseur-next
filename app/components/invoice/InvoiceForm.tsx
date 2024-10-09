@@ -1,21 +1,29 @@
+// InvoiceForm.tsx
+
 'use client';
 
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-import TaxModal from './TaxModal';
-import InvoiceDocument from '@/app/components/invoice/InvoicePDF';
-import InvoiceHeader from './InvoiceHeader';
-import InvoiceAddresses from './InvoiceAddresses';
-import InvoiceInfo from './InvoiceInfo';
+import InvoiceFromSection from './InvoiceFromSection';
+import InvoiceToSection from './InvoiceToSection';
 import InvoiceItems from './InvoiceItems';
 import InvoiceTotals from './InvoiceTotals';
-import InvoiceTermsAndSignature from './InvoiceTermsAndSignature';
+import InvoiceBankDetails from './InvoiceBankDetails';
 
 import { useInvoiceForm } from '@/app/hooks/useInvoiceForm';
+import InvoiceDocument from '@/app/components/invoice/InvoiceDocument';
+import InputField from '@/app/components/invoice/InputField';
+import ImageUploader from '@/app/components/invoice/ImageUploader';
 
 const PDFDownloadLink = dynamic(
     () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+    { ssr: false }
+);
+
+const PDFViewer = dynamic(
+    () =>
+        import('@react-pdf/renderer').then((mod) => mod.PDFViewer),
     { ssr: false }
 );
 
@@ -25,112 +33,127 @@ const InvoiceForm: React.FC = () => {
         currencySymbol,
         invoiceData,
         termsConditions,
-        isTaxModalOpen,
-        currentItemIndex,
         currencyList,
         setTermsConditions,
-        openTaxModal,
-        closeTaxModal,
         handleItemChange,
         handleInvoiceDataChange,
+        handleTopLevelChange,
         handleFileChangeOrDrop,
-        saveTaxDetails,
         removeItem,
         addNewItem,
         handleCurrencyChange,
     } = useInvoiceForm();
 
     return (
-        <div>
-            <div className="py-8 px-6 my-6 flex min-h-screen shadow-2xl rounded-2xl max-w-4xl flex-col mx-auto">
-                {/* Header Section */}
-                <InvoiceHeader
-                    from={invoiceData.from}
-                    onFromChange={handleInvoiceDataChange}
-                    logo={invoiceData.logo}
-                    onLogoChange={(file) => handleFileChangeOrDrop(file, 'logo')}
-                />
+        <div className="flex flex-col lg:flex-row">
+            {/* Left Side: Invoice Form */ }
+            <div className="p-4 flex flex-col mx-auto lg:w-1/2">
+                {/* Invoice Info */ }
+                <div className="flex flex-row space-x-2">
+                    <div className="flex flex-col space-y-2 w-1/2">
+                        <h3 className="text-xl font-bold mb-2">DETAILS:</h3>
+                        <InputField
+                            label="Invoice Date"
+                            name="invoiceDate"
+                            type="date"
+                            value={ invoiceData.invoiceDate || '' }
+                            onChange={ (e) => handleTopLevelChange('invoiceDate', e.target.value) }
+                        />
+                        <InputField
+                            label="Invoice Number"
+                            name="invoiceNumber"
+                            value={ invoiceData.invoiceNumber || '' }
+                            onChange={ (e) => handleTopLevelChange('invoiceNumber', e.target.value) }
+                        />
+                    </div>
 
-                {/* Addresses and Invoice Info */}
-                <div className="flex flex-row">
-                    <InvoiceAddresses
-                        billTo={invoiceData.billTo}
-                        shipTo={invoiceData.shipTo}
-                        onBillToChange={handleInvoiceDataChange}
-                        onShipToChange={handleInvoiceDataChange}
-                    />
-                    <InvoiceInfo
-                        invoiceNumber={invoiceData.invoiceNumber}
-                        invoiceDate={invoiceData.invoiceDate}
-                        poNumber={invoiceData.poNumber}
-                        dueDate={invoiceData.DueDate}
-                        onInvoiceNumberChange={handleInvoiceDataChange}
-                        onInvoiceDateChange={handleInvoiceDataChange}
-                        onPoNumberChange={handleInvoiceDataChange}
-                        onDueDateChange={handleInvoiceDataChange}
+                    {/* Logo Section */ }
+                    <ImageUploader
+                        label="Logo"
+                        image={ invoiceData.logo }
+                        onChange={ (file) => handleFileChangeOrDrop(file, 'logo') }
                     />
                 </div>
 
-                {/* Items Section */}
+                {/* Header Section */ }
+                <div className="flex flex-row space-x-2">
+                    <InvoiceFromSection
+                        from={ invoiceData.from }
+                        onFromChange={ handleInvoiceDataChange }
+                    />
+
+                    {/* TO Section */ }
+                    <InvoiceToSection
+                        to={ invoiceData.to }
+                        onToChange={ handleInvoiceDataChange }
+                    />
+                </div>
+
+                {/* Items Section */ }
                 <InvoiceItems
-                    items={invoiceData.items}
-                    onItemChange={handleItemChange}
-                    onOpenTaxModal={openTaxModal}
-                    onRemoveItem={removeItem}
-                    onAddNewItem={addNewItem}
+                    items={ invoiceData.items }
+                    onItemChange={ handleItemChange }
+                    onRemoveItem={ removeItem }
+                    onAddNewItem={ addNewItem }
                 />
 
-                {/* Totals Section */}
-                <div className="flex flex-row justify-between mt-4 space-x-4">
-                    <InvoiceTotals
-                        subtotal={invoiceData.subtotal}
-                        vat={invoiceData.vat}
-                        total={invoiceData.total}
-                        vatPercentage={invoiceData.vatPercentage}
-                        currency={currency}
-                        currencySymbol={currencySymbol}
-                        currencyList={currencyList}
-                        onCurrencyChange={handleCurrencyChange}
-                        items={invoiceData.items}
+                {/* Totals Section */ }
+                <InvoiceTotals
+                    subtotal={ invoiceData.subtotal }
+                    total={ invoiceData.total }
+                    currency={ currency }
+                    currencySymbol={ currencySymbol }
+                    currencyList={ currencyList }
+                    onCurrencyChange={ handleCurrencyChange }
+                />
+
+                {/* Banking Details Section */ }
+                <InvoiceBankDetails
+                    bankDetails={ invoiceData.bankDetails }
+                    onBankDetailsChange={ handleInvoiceDataChange }
+                />
+
+                {/* Terms and Conditions */ }
+                <div className="mt-4">
+                    <InputField
+                        label="Terms and Conditions"
+                        name="termsConditions"
+                        value={ termsConditions }
+                        onChange={ (e) => setTermsConditions(e.target.value) }
+                        type="textarea"
+                        rows={ 4 }
                     />
                 </div>
 
-                {/* Terms and Signature Section */}
-                <InvoiceTermsAndSignature
-                    termsConditions={termsConditions}
-                    onTermsConditionsChange={(e) => setTermsConditions(e.target.value)}
-                    signature={invoiceData.signature}
-                    onSignatureChange={(file) => handleFileChangeOrDrop(file, 'signature')}
-                />
-
-                {/* Tax Modal */}
-                {currentItemIndex !== null && (
-                    <TaxModal
-                        isOpen={isTaxModalOpen}
-                        onClose={closeTaxModal}
-                        onSave={(taxName, taxPercentage) =>
-                            saveTaxDetails(currentItemIndex, taxName, taxPercentage)
+                {/* Generate PDF Button */ }
+                <div className="my-4 flex justify-center">
+                    <PDFDownloadLink
+                        document={
+                            <InvoiceDocument
+                                invoiceData={ {
+                                    ...invoiceData,
+                                    termsConditions,
+                                } }
+                            />
                         }
-                    />
-                )}
+                        fileName={ `invoice_${ invoiceData.invoiceNumber || Date.now() }.pdf` }
+                        className="py-2 px-4 bg-purple-500 text-white rounded-md hover:bg-purple-600 w-full text-center"
+                    >
+                        { ({ loading }) => (loading ? 'Generating PDF...' : 'Generate PDF') }
+                    </PDFDownloadLink>
+                </div>
             </div>
 
-            {/* Generate PDF Button */}
-            <div className="my-4 max-w-4xl justify-center flex mx-auto">
-                <PDFDownloadLink
-                    document={
-                        <InvoiceDocument
-                            invoiceData={{
-                                ...invoiceData,
-                                termsConditions,
-                            }}
-                        />
-                    }
-                    fileName={`invoice_${invoiceData.invoiceNumber || Date.now()}.pdf`}
-                    className="py-2 shadow-2xl bg-purple-500 text-white rounded-md hover:bg-purple-600 w-full text-center"
-                >
-                    {({ loading }) => (loading ? 'Generating PDF...' : 'Generate PDF')}
-                </PDFDownloadLink>
+            {/* Right Side: Live Invoice Preview */ }
+            <div className="py-8 px-6 my-6 flex shadow-2xl rounded-2xl mx-auto lg:w-1/2">
+                <PDFViewer width="100%" height="1000">
+                    <InvoiceDocument
+                        invoiceData={ {
+                            ...invoiceData,
+                            termsConditions,
+                        } }
+                    />
+                </PDFViewer>
             </div>
         </div>
     );
